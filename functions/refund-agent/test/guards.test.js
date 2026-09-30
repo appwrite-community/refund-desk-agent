@@ -54,6 +54,13 @@ test('deliveries outside the window need staff', () => {
   assert.match(failures[0].message, /Delivered 31 days ago/);
 });
 
+test('the window counts calendar days, whatever the time of day', () => {
+  const input = clearCase();
+  input.order = { deliveredAt: '2026-08-30T15:00:00Z' };
+  assert.deepEqual(rules({ ...input, now: Date.parse('2026-09-29T03:00:00Z') }), []);
+  assert.deepEqual(rules({ ...input, now: Date.parse('2026-09-30T01:00:00Z') }), ['window']);
+});
+
 test('an order without a delivery date fails the window rule', () => {
   assert.deepEqual(rules({ ...clearCase(), order: { deliveredAt: null } }), ['window']);
 });

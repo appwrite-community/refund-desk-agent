@@ -5,7 +5,8 @@ const monthDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeri
 
 export const money = (cents) => usd.format(cents / 100);
 export const shortDate = (date) => monthDay.format(new Date(date));
-export const daysSince = (date, now = Date.now()) => Math.floor((now - new Date(date).getTime()) / DAY_MS);
+/** Whole calendar days (UTC) between a date and now, so the count does not change during the day. */
+export const daysSince = (date, now = Date.now()) => Math.floor(now / DAY_MS) - Math.floor(new Date(date).getTime() / DAY_MS);
 
 /** The number customers and staff see, for example #1043. */
 export const requestNumber = (row) => 1000 + Number(row.$sequence);
