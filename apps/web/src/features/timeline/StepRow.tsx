@@ -99,9 +99,17 @@ export function StepRow({ step, last }: { step: RunStep; last: boolean }) {
   const person = step.kind === 'trigger';
   const running = step.status === 'running';
 
+  // Measure again when the column width changes (for example when the timeline gains a scrollbar)
+  // and once the font has loaded.
   useLayoutEffect(() => {
     const element = detail.current;
-    if (element && !expanded) setClamped(element.scrollHeight > element.clientHeight + 1);
+    if (!element || expanded) return;
+    const measure = () => setClamped(element.scrollHeight > element.clientHeight + 1);
+    measure();
+    void document.fonts.ready.then(measure);
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
   }, [step.detail, expanded]);
 
   return (
