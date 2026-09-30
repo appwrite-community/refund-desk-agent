@@ -1,7 +1,7 @@
 import { Query } from 'node-appwrite';
 import { DATABASE_ID, TABLES } from '../config.js';
 import { requestApproval } from './approvals.js';
-import { daysSince, describeError, money, requestNumber } from './format.js';
+import { daysSince, describeError, longDate, money, requestNumber } from './format.js';
 import { checkAutoRefund } from './guards.js';
 import { inspectPhoto } from './photo.js';
 import { completeRefund } from './refunds.js';
@@ -114,7 +114,7 @@ async function loadHistory(ctx, request) {
         amount: money(row.amountCents),
         reason: row.reason,
         status: row.status,
-        date: row.$createdAt.slice(0, 10),
+        date: longDate(row.$createdAt),
       })),
   };
 }
@@ -162,8 +162,8 @@ export function createToolbox(ctx, run, request, { job, replies = [] }) {
           result: {
             orderNumber: row.number,
             status: row.status,
-            placedAt: row.placedAt,
-            deliveredAt: row.deliveredAt,
+            placedOn: longDate(row.placedAt),
+            deliveredOn: row.deliveredAt ? longDate(row.deliveredAt) : null,
             daysSinceDelivery: days,
             items: items.map((item) => ({ ...item, unitPrice: money(item.unitPriceCents) })),
             requestedItem: { sku: request.itemSku, name: request.itemName, refundAmount: money(request.amountCents) },

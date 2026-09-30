@@ -2,9 +2,12 @@ export const DAY_MS = 24 * 60 * 60 * 1000;
 
 const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 const monthDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+const monthDayYear = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
 export const money = (cents) => usd.format(cents / 100);
 export const shortDate = (date) => monthDay.format(new Date(date));
+/** Dates the model reads and repeats to staff, for example Sep 21, 2026. */
+export const longDate = (date) => monthDayYear.format(new Date(date));
 /** Whole calendar days (UTC) between a date and now, so the count does not change during the day. */
 export const daysSince = (date, now = Date.now()) => Math.floor(now / DAY_MS) - Math.floor(new Date(date).getTime() / DAY_MS);
 

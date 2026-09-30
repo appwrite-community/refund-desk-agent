@@ -1,6 +1,6 @@
 import { agentPrompt, quoteCustomer } from '../prompts.js';
 import { escalate } from './approvals.js';
-import { REASON_LABELS, describeError, money, requestNumber } from './format.js';
+import { REASON_LABELS, describeError, longDate, money, requestNumber } from './format.js';
 import { runToolLoop } from './model.js';
 import { createToolbox } from './tools.js';
 
@@ -10,7 +10,7 @@ import { createToolbox } from './tools.js';
  */
 export function caseFile({ request, previousApproval = null, replies = [] }) {
   const lines = [
-    `Refund request #${requestNumber(request)}, submitted ${request.$createdAt.slice(0, 10)}`,
+    `Refund request #${requestNumber(request)}, submitted ${longDate(request.$createdAt)}`,
     `Item: ${request.itemName} (SKU ${request.itemSku}) from order ${request.orderNumber}`,
     `Refund amount if approved: ${money(request.amountCents)}`,
     `Reason: ${REASON_LABELS[request.reason]}`,
@@ -29,7 +29,7 @@ export function caseFile({ request, previousApproval = null, replies = [] }) {
   for (const reply of replies) {
     lines.push(
       '',
-      `Customer answer, ${reply.$createdAt.slice(0, 10)} (photo attached: ${reply.photoId ? 'yes' : 'no'}):`,
+      `Customer answer, ${longDate(reply.$createdAt)} (photo attached: ${reply.photoId ? 'yes' : 'no'}):`,
       quoteCustomer(reply.message),
     );
   }

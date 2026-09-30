@@ -1,4 +1,4 @@
-import { REASON_LABELS } from './lib/format.js';
+import { REASON_LABELS, longDate } from './lib/format.js';
 
 /** Wraps customer text in tags the prompts tell the model to distrust. */
 export function quoteCustomer(text) {
@@ -28,7 +28,8 @@ Recommend "refund_after_return" when the policy says the item must come back fir
 Recommend "ask_customer" when one question to the customer could settle the case, and write that question in draftQuestion.
 findings: up to five short facts that support your recommendation. concerns: up to five short problems or risks. One sentence each.
 reasoning: at most four sentences for the staff member who decides.
-Today is ${new Date().toISOString().slice(0, 10)}.`;
+Write dates the way the tools show them, for example Sep 21, 2026.
+Today is ${longDate(Date.now())}.`;
 }
 
 export const PHOTO_PROMPT = `You inspect photos that customers attach to refund requests at Pourhaven, an online store for coffee brewing gear.
