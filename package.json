@@ -7,6 +7,8 @@
     "node": ">=22.9"
   },
   "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
     "provision": "pnpm --filter scripts provision",
     "seed": "pnpm --filter scripts seed",
     "reset": "pnpm --filter scripts reset",
