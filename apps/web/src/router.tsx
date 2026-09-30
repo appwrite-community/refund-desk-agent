@@ -1,0 +1,24 @@
+import { QueryClient } from '@tanstack/react-query';
+import { createRouter } from '@tanstack/react-router';
+import { routeTree } from './routeTree.gen';
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    // Realtime keeps cached rows current, so reads can stay fresh for a while.
+    queries: { staleTime: 30_000, refetchOnWindowFocus: false },
+  },
+});
+
+export const router = createRouter({
+  routeTree,
+  context: { queryClient },
+  defaultPreload: 'intent',
+  defaultPreloadStaleTime: 0,
+  scrollRestoration: true,
+});
+
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}

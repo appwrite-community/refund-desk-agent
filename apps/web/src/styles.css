@@ -1,0 +1,201 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, monospace;
+
+  /* Type scale: 12/16, 13/18, 14/20, 16/24, 20/28, 24/32, 30/36 */
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-13: 13px;
+  --text-13--line-height: 18px;
+  --text-sm: 14px;
+  --text-sm--line-height: 20px;
+  --text-base: 16px;
+  --text-base--line-height: 24px;
+  --text-xl: 20px;
+  --text-xl--line-height: 28px;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 32px;
+  --text-3xl: 30px;
+  --text-3xl--line-height: 36px;
+
+  /* Surfaces */
+  --color-background: #0b0b0d;
+  --color-surface: #111114;
+  --color-raised: #17171b;
+  --color-hover: #1d1d22;
+  --color-border: #25252b;
+  --color-border-strong: #313138;
+
+  /* Text */
+  --color-foreground: #ededf0;
+  --color-muted: #a1a1aa;
+  --color-subtle: #8b8b95;
+
+  /* The one accent. It always means the refund agent. */
+  --color-iris: #8b7cf6;
+
+  /* Status hues */
+  --color-amber: #f5b94a;
+  --color-sky: #5cb8f0;
+  --color-slate: #a1a1aa;
+  --color-green: #4ade80;
+  --color-rose: #f87171;
+
+  /* shadcn/ui roles */
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-foreground);
+  --color-popover: var(--color-raised);
+  --color-popover-foreground: var(--color-foreground);
+  --color-primary: var(--color-foreground);
+  --color-primary-foreground: var(--color-background);
+  --color-secondary: var(--color-raised);
+  --color-secondary-foreground: var(--color-foreground);
+  --color-muted-foreground: var(--color-muted);
+  --color-accent: var(--color-hover);
+  --color-accent-foreground: var(--color-foreground);
+  --color-destructive: var(--color-rose);
+  --color-input: var(--color-border-strong);
+  --color-ring: var(--color-iris);
+
+  /* Desk layout: list and detail side by side from 900 px, timeline beside the detail from 1200 px. */
+  --breakpoint-desk: 56.25rem;
+  --breakpoint-wide: 75rem;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-popover: 0 16px 40px -12px rgb(0 0 0 / 0.7);
+
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-agent-pulse: agent-pulse 2s ease-in-out infinite;
+  --animate-rise: rise 180ms ease-out both;
+  --animate-progress: progress 1.4s ease-in-out infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: -100% 0;
+    }
+  }
+  @keyframes agent-pulse {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.45;
+      transform: scale(0.82);
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, calc(-50% + 4px)) scale(0.98);
+    }
+  }
+  @keyframes progress {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(250%);
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-sm text-foreground antialiased;
+    font-feature-settings: 'cv11';
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: rgb(139 124 246 / 0.35);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-iris);
+    outline-offset: 2px;
+  }
+  input:focus-visible,
+  textarea:focus-visible {
+    outline-offset: 0;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Running agent steps: an iris sweep across the text. */
+@utility text-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-foreground) 0%,
+    var(--color-foreground) 35%,
+    var(--color-iris) 50%,
+    var(--color-foreground) 65%,
+    var(--color-foreground) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: var(--animate-shimmer);
+}
+
+/* A faint dotted grid for the sign-in screen. */
+@utility bg-dots {
+  background-image: radial-gradient(rgb(237 237 240 / 0.07) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .text-shimmer {
+    animation: none;
+    color: var(--color-iris);
+  }
+}
