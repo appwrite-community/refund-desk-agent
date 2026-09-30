@@ -2,48 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { Run } from '../src/lib/timeline.js';
 import { createToolbox } from '../src/lib/tools.js';
+import { fakeTablesDB } from './fakes.js';
 
 const DAY = 24 * 60 * 60 * 1000;
-
-/** An in-memory stand-in for TablesDB with the calls the tools use (equal filters only). */
-function fakeTablesDB(seed) {
-  const tables = new Map(Object.entries(seed).map(([tableId, rows]) => [tableId, new Map(rows.map((row) => [row.$id, row]))]));
-  const table = (tableId) => {
-    if (!tables.has(tableId)) tables.set(tableId, new Map());
-    return tables.get(tableId);
-  };
-  const error = (code, type) => Object.assign(new Error(type), { code, type });
-  const updatedTables = [];
-  return {
-    tables,
-    updatedTables,
-    rows: (tableId) => [...table(tableId).values()],
-    async getRow({ tableId, rowId }) {
-      const row = table(tableId).get(rowId);
-      if (!row) throw error(404, 'row_not_found');
-      return row;
-    },
-    async createRow({ tableId, rowId, data, permissions = [] }) {
-      if (table(tableId).has(rowId)) throw error(409, 'row_already_exists');
-      const row = { $id: rowId, $createdAt: new Date().toISOString(), $permissions: permissions, ...data };
-      table(tableId).set(rowId, row);
-      return row;
-    },
-    async updateRow({ tableId, rowId, data }) {
-      updatedTables.push(tableId);
-      const row = { ...table(tableId).get(rowId), ...data };
-      table(tableId).set(rowId, row);
-      return row;
-    },
-    async listRows({ tableId, queries = [] }) {
-      const filters = queries.map((query) => JSON.parse(query)).filter((query) => query.method === 'equal');
-      const rows = [...table(tableId).values()].filter((row) =>
-        filters.every((filter) => filter.values.includes(row[filter.attribute])),
-      );
-      return { rows, total: rows.length };
-    },
-  };
-}
 
 function setup({ amountCents = 2400, deliveredDaysAgo = 3, refundsDaysAgo = [], verdict = 'yes' } = {}) {
   const request = {

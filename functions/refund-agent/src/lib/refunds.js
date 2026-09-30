@@ -68,14 +68,13 @@ export function checkTime(minutes, now = Date.now()) {
  * Queues a return check as a delayed execution of this same function. Nothing
  * runs in the meantime. The body tells the future execution what to do.
  */
-export async function scheduleReturnCheck(ctx, request, attempt, at) {
-  const execution = await ctx.functions.createExecution({
+export function scheduleReturnCheck(ctx, request, attempt, at) {
+  return ctx.functions.createExecution({
     functionId: process.env.APPWRITE_FUNCTION_ID,
     async: true,
     scheduledAt: at.toISOString(),
     body: JSON.stringify({ type: 'return_check', requestId: request.$id, attempt }),
   });
-  return execution;
 }
 
 /** Sends a return code and schedules the first return check. */
@@ -84,7 +83,10 @@ export async function startReturn(ctx, run, request) {
   const checkAt = checkTime(ctx.config.returnCheckDelayMinutes);
   const shipBy = new Date(Date.now() + 7 * DAY_MS);
 
-  // Update the request before queueing the check, so the check always finds it.
+  // Queue the check first. It runs at least a minute later, so it finds the
+  // request updated. If queueing fails, the request is untouched and the run
+  // hands it to staff.
+  const execution = await scheduleReturnCheck(ctx, request, 1, checkAt);
   await ctx.tablesDB.updateRow({
     databaseId: DATABASE_ID,
     tableId: TABLES.requests,
@@ -98,7 +100,6 @@ export async function startReturn(ctx, run, request) {
       returnCheckAt: checkAt.toISOString(),
     },
   });
-  const execution = await scheduleReturnCheck(ctx, request, 1, checkAt);
   await run.action(`Scheduled a return check for ${shortDate(checkAt)}`, `Delayed execution ${execution.$id}.`);
   await run.tellCustomer(
     'Send the item back',

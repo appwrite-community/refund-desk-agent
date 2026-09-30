@@ -35,18 +35,19 @@ export async function returnCheckJob(ctx, { requestId, attempt }) {
 
     if (attempt === 1) {
       const checkAt = checkTime(ctx.config.returnCheckDelayMinutes);
+      const execution = await scheduleReturnCheck(ctx, request, 2, checkAt);
       await ctx.tablesDB.updateRow({
         databaseId: DATABASE_ID,
         tableId: TABLES.requests,
         rowId: request.$id,
         data: { status: 'awaiting_return', returnChecks: 1, returnCheckAt: checkAt.toISOString() },
       });
-      const execution = await scheduleReturnCheck(ctx, request, 2, checkAt);
       await run.action(`Scheduled another return check for ${shortDate(checkAt)}`, `Delayed execution ${execution.$id}.`);
       await run.tellCustomer(
         'Reminder: send the item back',
         `We have not received the ${request.itemName} yet. Ship it with return code ${request.returnCode} ` +
           `to ${RETURN_ADDRESS}. We check again on ${shortDate(checkAt)}.`,
+        { from: 'store' },
       );
       await run.finish('Waiting for the return');
       return;
@@ -58,7 +59,9 @@ export async function returnCheckJob(ctx, { requestId, attempt }) {
       rowId: request.$id,
       data: { status: 'closed', returnChecks: attempt, returnCheckAt: null },
     });
-    await run.tellCustomer('Request closed', `We did not receive the ${request.itemName}, so this request is closed.`);
+    await run.tellCustomer('Request closed', `We did not receive the ${request.itemName}, so this request is closed.`, {
+      from: 'store',
+    });
     await run.finish('Closed');
   });
 }
