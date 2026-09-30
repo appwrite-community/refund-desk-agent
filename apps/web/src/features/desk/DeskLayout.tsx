@@ -54,7 +54,7 @@ export function DeskLayout({ viewer, children }: { viewer: Viewer; children: Rea
       </aside>
 
       <MobileBar requests={requests.data} viewer={viewer} />
-      <div className="min-h-0 min-w-0 flex-1">{children}</div>
+      <main className="min-h-0 min-w-0 flex-1">{children}</main>
     </div>
   );
 }

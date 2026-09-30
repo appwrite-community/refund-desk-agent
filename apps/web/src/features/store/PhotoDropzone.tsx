@@ -1,5 +1,5 @@
 import { CircleAlert, ImagePlus, RefreshCw, Trash2 } from 'lucide-react';
-import { useEffect, useId, useMemo, useRef, useState, type DragEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { ACCEPTED_TYPES, PhotoError, preparePhoto } from '@/lib/photos';
 import { cn } from '@/lib/utils';
@@ -19,7 +19,6 @@ const kb = (bytes: number) => (bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).t
 
 /** Drag and drop or browse for one photo. Photos are resized before they are handed back. */
 export function PhotoDropzone({ file, onChange, progress, disabled, invalid, compact, describedBy }: PhotoDropzoneProps) {
-  const inputId = useId();
   const input = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [preparing, setPreparing] = useState(false);
@@ -50,12 +49,12 @@ export function PhotoDropzone({ file, onChange, progress, disabled, invalid, com
   const picker = (
     <input
       ref={input}
-      id={inputId}
       type="file"
       accept={ACCEPTED_TYPES.join(',')}
       className="sr-only"
       disabled={disabled}
       onChange={(event) => void accept(event.target.files?.[0])}
+      aria-label="Photo of the item"
       aria-describedby={describedBy}
       tabIndex={-1}
     />
@@ -104,8 +103,8 @@ export function PhotoDropzone({ file, onChange, progress, disabled, invalid, com
   return (
     <div>
       {picker}
-      <label
-        htmlFor={inputId}
+      <div
+        onClick={() => !disabled && input.current?.click()}
         onDragOver={(event) => {
           event.preventDefault();
           if (!disabled) setDragging(true);
@@ -139,7 +138,7 @@ export function PhotoDropzone({ file, onChange, progress, disabled, invalid, com
           </span>
           <span className="block text-xs text-muted">JPG, PNG, or WebP. Large photos are resized before upload.</span>
         </span>
-      </label>
+      </div>
       {error && (
         <p role="alert" className="mt-2 flex items-center gap-1.5 text-13 text-rose">
           <CircleAlert className="size-3.5" aria-hidden />

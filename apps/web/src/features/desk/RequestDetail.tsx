@@ -107,6 +107,7 @@ export function RequestDetail({ requestId, queue, viewer }: { requestId: string;
 
 function RunCount({ steps }: { steps: RunStep[] }) {
   const runs = new Set(steps.map((step) => step.runId)).size;
+  if (runs === 0) return null;
   return (
     <span className="text-xs text-subtle">
       {runs} {runs === 1 ? 'run' : 'runs'}
@@ -178,6 +179,10 @@ function Meta({ label, icon, children }: { label: string; icon: ReactNode; child
 const isStalled = (request: RefundRequest, now: number) =>
   request.status === 'working' && now - toMs(request.$updatedAt) > STALLED_AFTER;
 
+/** Event executions start within seconds; a request still waiting after minutes was never picked up. */
+const isNotStarted = (request: RefundRequest, now: number) =>
+  request.status === 'submitted' && now - toMs(request.$createdAt) > NOT_STARTED_AFTER;
+
 function Banners({ request }: { request: RefundRequest }) {
   const now = useNow(15_000);
   if (isStalled(request, now)) {
@@ -187,7 +192,7 @@ function Banners({ request }: { request: RefundRequest }) {
       </Banner>
     );
   }
-  if (request.status === 'submitted' && now - toMs(request.$createdAt) > NOT_STARTED_AFTER) {
+  if (isNotStarted(request, now)) {
     return <Banner>The agent has not started on this request yet. Check that the refund-agent function is enabled.</Banner>;
   }
   return null;
@@ -233,7 +238,7 @@ function CaseCards({ request, steps, approvals, viewer, loading }: CaseCardsProp
   else if (request.status === 'needs_approval') {
     main = pending ? <ApprovalCard key={pending.$id} approval={pending} request={request} viewer={viewer} /> : <Skeleton className="h-52 rounded-lg" />;
   } else if (request.status === 'working') main = isStalled(request, now) ? null : <AgentWorkingCard run={lastRun} />;
-  else if (request.status === 'submitted') main = <SubmittedCard />;
+  else if (request.status === 'submitted') main = isNotStarted(request, now) ? null : <SubmittedCard />;
   else if (request.status === 'needs_customer') main = <QuestionCard request={request} approval={latest} />;
   else if (request.status === 'awaiting_return') main = <ReturnCard request={request} />;
   else main = <OutcomeCard request={request} steps={steps} />;

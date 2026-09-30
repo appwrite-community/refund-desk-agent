@@ -264,7 +264,7 @@ function Summary({ order, item }: { order: Order; item: OrderItem }) {
       <div className="flex items-center gap-3.5 border-b border-border p-5">
         <ProductImage sku={item.sku} name={item.name} className="size-16" />
         <div className="min-w-0">
-          <p className="text-sm font-medium">{item.name}</p>
+          <p className="text-sm font-medium text-balance">{item.name}</p>
           <p className="mt-0.5 text-13 text-muted">{item.quantity > 1 ? `${item.quantity} × ${money(item.unitPriceCents)}` : 'Qty 1'}</p>
         </div>
       </div>

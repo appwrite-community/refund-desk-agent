@@ -80,7 +80,7 @@ function RequestSummary({ request }: { request: RefundRequest }) {
       <div className="flex items-center gap-3.5 border-b border-border p-5">
         <ProductImage sku={request.itemSku} name={request.itemName} className="size-14" />
         <div className="min-w-0">
-          <p className="text-sm font-medium">{request.itemName}</p>
+          <p className="text-sm font-medium text-balance">{request.itemName}</p>
           <p className="mt-0.5 text-sm tabular text-muted">{money(request.amountCents)}</p>
         </div>
       </div>

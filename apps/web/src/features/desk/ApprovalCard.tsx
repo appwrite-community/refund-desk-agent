@@ -116,12 +116,21 @@ export function ApprovalCard({ approval, request, viewer }: ApprovalCardProps) {
 
       <div className="flex items-center gap-4 border-t border-border px-5 py-3">
         <div className="min-w-0 flex-1">
-          <Label htmlFor={`return-${approval.$id}`} className="text-13">
+          <Label id={`return-label-${approval.$id}`} htmlFor={`return-${approval.$id}`} className="text-13">
             Require return first
           </Label>
-          <p className="text-xs text-muted">Send a return code now and refund when the item arrives.</p>
+          <p id={`return-hint-${approval.$id}`} className="text-xs text-muted">
+            Send a return code now and refund when the item arrives.
+          </p>
         </div>
-        <Switch id={`return-${approval.$id}`} checked={requireReturn} onCheckedChange={setRequireReturn} disabled={mutation.isPending} />
+        <Switch
+          id={`return-${approval.$id}`}
+          checked={requireReturn}
+          onCheckedChange={setRequireReturn}
+          disabled={mutation.isPending}
+          aria-labelledby={`return-label-${approval.$id}`}
+          aria-describedby={`return-hint-${approval.$id}`}
+        />
       </div>
 
       <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-border bg-background/40 px-5 py-3.5">
