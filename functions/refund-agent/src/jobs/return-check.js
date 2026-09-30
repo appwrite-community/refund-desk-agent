@@ -30,6 +30,7 @@ export async function returnCheckJob(ctx, { requestId, attempt }) {
       const order = await ctx.tablesDB.getRow({ databaseId: DATABASE_ID, tableId: TABLES.orders, rowId: request.orderId });
       await completeRefund(ctx, run, request, order, request.amountCents, { from: 'store' });
       await run.finish('Refunded');
+      ctx.log(`Request ${request.$id}: refunded (return check ${attempt})`);
       return;
     }
 
@@ -50,6 +51,7 @@ export async function returnCheckJob(ctx, { requestId, attempt }) {
         { from: 'store' },
       );
       await run.finish('Waiting for the return');
+      ctx.log(`Request ${request.$id}: awaiting_return, reminder sent (return check ${attempt})`);
       return;
     }
 
@@ -63,5 +65,6 @@ export async function returnCheckJob(ctx, { requestId, attempt }) {
       from: 'store',
     });
     await run.finish('Closed');
+    ctx.log(`Request ${request.$id}: closed (return check ${attempt})`);
   });
 }
