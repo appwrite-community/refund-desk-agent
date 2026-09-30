@@ -17,8 +17,16 @@ import { decide, type DecisionInput } from '@/lib/desk';
 import { money, toMs, wait } from '@/lib/format';
 import type { Viewer } from '@/lib/queries';
 import { recommendationLabel, recommendationTone } from '@/lib/status';
-import type { Approval, Decision, RefundRequest } from '@/lib/types';
+import type { Approval, Decision, Recommendation, RefundRequest } from '@/lib/types';
 import { cn } from '@/lib/utils';
+
+const RECOMMENDED_DECISION: Record<Recommendation, Decision | null> = {
+  refund: 'approve',
+  refund_after_return: 'approve',
+  ask_customer: 'ask_customer',
+  decline: 'decline',
+  manual_review: null,
+};
 
 type ApprovalCardProps = { approval: Approval; request: RefundRequest; viewer: Viewer };
 
@@ -47,8 +55,8 @@ export function ApprovalCard({ approval, request, viewer }: ApprovalCardProps) {
 
   const submit = (decision: Decision, staffNote: string | null = null) => mutation.mutate({ decision, requireReturn, staffNote });
   const amount = Math.min(approval.amountCents, request.amountCents);
-  const recommended: Decision =
-    approval.recommendation === 'decline' ? 'decline' : approval.recommendation === 'ask_customer' ? 'ask_customer' : 'approve';
+  // The agent's recommendation gets the primary button. A manual review recommends nothing.
+  const recommended: Decision | null = RECOMMENDED_DECISION[approval.recommendation];
 
   function onKeyDown(event: KeyboardEvent<HTMLElement>) {
     if (event.target !== event.currentTarget || mutation.isPending || event.metaKey || event.ctrlKey || event.altKey) return;

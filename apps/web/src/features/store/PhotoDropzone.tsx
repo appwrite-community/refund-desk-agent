@@ -62,34 +62,37 @@ export function PhotoDropzone({ file, onChange, progress, disabled, invalid, com
 
   if (file && preview) {
     return (
-      <div className={cn('overflow-hidden rounded-md border border-border-strong bg-raised', compact ? 'flex items-center gap-3 p-2.5' : '')}>
+      <div className="flex items-center gap-4 rounded-md border border-border-strong bg-raised p-3">
         {picker}
         <img
           src={preview}
           alt="Selected photo"
-          className={cn('bg-black object-cover', compact ? 'size-14 rounded-sm' : 'aspect-[16/9] w-full')}
+          className={cn('shrink-0 rounded-sm bg-black object-cover', compact ? 'size-14' : 'h-24 w-32')}
         />
-        <div className={cn('flex items-center gap-3', compact ? 'min-w-0 flex-1' : 'px-3.5 py-3')}>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-13 font-medium">{file.name}</p>
-            {progress === null ? (
-              <p className="text-xs text-muted">{kb(file.size)}, resized for upload</p>
-            ) : (
-              <div className="mt-1.5 flex items-center gap-2.5">
-                <div className="h-1 flex-1 overflow-hidden rounded-full bg-border-strong" role="progressbar" aria-label="Upload progress" aria-valuenow={Math.round(progress * 100)}>
-                  <div className="h-full rounded-full bg-foreground transition-[width] duration-200" style={{ width: `${Math.max(4, progress * 100)}%` }} />
-                </div>
-                <span className="w-9 text-right text-xs text-muted tabular">{Math.round(progress * 100)}%</span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-13 font-medium">{file.name}</p>
+          {progress === null ? (
+            <p className="text-xs text-muted">{kb(file.size)}, resized for upload</p>
+          ) : (
+            <div className="mt-1.5 flex items-center gap-2.5">
+              <div
+                className="h-1 flex-1 overflow-hidden rounded-full bg-border-strong"
+                role="progressbar"
+                aria-label="Upload progress"
+                aria-valuenow={Math.round(progress * 100)}
+              >
+                <div className="h-full rounded-full bg-foreground transition-[width] duration-200" style={{ width: `${Math.max(4, progress * 100)}%` }} />
               </div>
-            )}
-          </div>
+              <span className="w-9 text-right text-xs text-muted tabular">{Math.round(progress * 100)}%</span>
+            </div>
+          )}
           {progress === null && (
-            <div className="flex shrink-0 gap-1">
-              <Button type="button" variant="ghost" size="sm" disabled={disabled} onClick={() => input.current?.click()}>
+            <div className="mt-2 flex gap-1">
+              <Button type="button" variant="ghost" size="sm" className="-ml-2 h-7 px-2" disabled={disabled} onClick={() => input.current?.click()}>
                 <RefreshCw aria-hidden />
                 Replace
               </Button>
-              <Button type="button" variant="ghost" size="sm" disabled={disabled} onClick={() => onChange(null)}>
+              <Button type="button" variant="ghost" size="sm" className="h-7 px-2" disabled={disabled} onClick={() => onChange(null)}>
                 <Trash2 aria-hidden />
                 Remove
               </Button>
