@@ -12,6 +12,6 @@ export default tseslint.config(
   {
     files: ['scripts/**/*.ts'],
     extends: [tseslint.configs.recommended],
-    languageOptions: { globals: globals.node },
+    languageOptions: { globals: globals.node, parserOptions: { tsconfigRootDir: import.meta.dirname } },
   },
 );

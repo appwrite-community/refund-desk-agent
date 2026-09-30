@@ -301,11 +301,11 @@ async function seedHistoryCase(item: HistoryCase) {
         const secondCheck = firstCheck + 7 * DAY;
         add({ at: firstCheck, runId: r3, kind: 'trigger', rowId: `chk_${item.id}_1`, actor: 'system', actorName: 'Return check', title: 'Checked for the return (check 1 of 2)', detail: 'The item has not arrived.' });
         add({ at: firstCheck + 800, runId: r3, kind: 'action', title: `Scheduled another return check for ${shortDate(secondCheck)}`, detail: `Delayed execution ${stableId(`${item.id}-check-2`)}.` });
-        add({ at: firstCheck + 1_100, runId: r3, kind: 'message', title: 'Reminder: send the item back', detail: `We have not received the ${line.name} yet. Ship it with return code ${returnCode} to ${RETURN_ADDRESS}. We check again on ${shortDate(secondCheck)}.`, visibility: 'customer' });
+        add({ at: firstCheck + 1_100, runId: r3, kind: 'message', actor: 'system', actorName: 'Pourhaven', title: 'Reminder: send the item back', detail: `We have not received the ${line.name} yet. Ship it with return code ${returnCode} to ${RETURN_ADDRESS}. We check again on ${shortDate(secondCheck)}.`, visibility: 'customer' });
         add({ at: firstCheck + 1_300, runId: r3, kind: 'finish', title: 'Waiting for the return' });
         const r4 = run(4);
         add({ at: secondCheck, runId: r4, kind: 'trigger', rowId: `chk_${item.id}_2`, actor: 'system', actorName: 'Return check', title: 'Checked for the return (check 2 of 2)', detail: 'The item has not arrived.' });
-        add({ at: secondCheck + 700, runId: r4, kind: 'message', title: 'Request closed', detail: `We did not receive the ${line.name}, so this request is closed.`, visibility: 'customer' });
+        add({ at: secondCheck + 700, runId: r4, kind: 'message', actor: 'system', actorName: 'Pourhaven', title: 'Request closed', detail: `We did not receive the ${line.name}, so this request is closed.`, visibility: 'customer' });
         add({ at: secondCheck + 900, runId: r4, kind: 'finish', title: 'Closed' });
         status = 'closed';
       }
