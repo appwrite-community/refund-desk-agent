@@ -99,13 +99,20 @@ test('when the check cannot be queued, the request goes back to staff', async ()
   assert.equal(tablesDB.updatedTables.includes('approvals'), false);
 });
 
-test('a decision from outside the staff team is ignored', async () => {
-  const { ctx, tablesDB, request, steps } = setup({ userId: 'priya-raman' });
+test('a decision from outside the staff team goes back to the queue', async () => {
+  const { ctx, tablesDB, request, steps } = setup({ userId: 'console-user' });
   await decisionJob(ctx, { rowId: 'apr1' });
-  assert.equal(request().status, 'needs_approval');
+  await decisionJob(ctx, { rowId: 'apr1' });
   assert.equal(tablesDB.rows('payments').length, 0);
-  assert.equal(tablesDB.row('run_steps', 'apr_apr1'), undefined);
-  assert.deepEqual(steps().map((step) => step.title), ['Decision ignored']);
+  assert.equal(request().status, 'needs_approval');
+  const reopened = tablesDB.row('approvals', request().pendingApprovalId);
+  assert.notEqual(reopened.$id, 'apr1');
+  assert.equal(reopened.recommendation, 'refund');
+  assert.equal(reopened.decision, undefined);
+  assert.equal(tablesDB.rows('approvals').length, 2);
+  assert.equal(tablesDB.row('run_steps', 'apr_apr1').title, 'Ignored a decision from outside the staff team');
+  assert.deepEqual(steps().map((step) => step.kind), ['trigger', 'finish']);
+  assert.equal(tablesDB.updatedTables.includes('approvals'), false);
 });
 
 test('each decision runs once', async () => {

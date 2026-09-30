@@ -17,9 +17,12 @@ const JOBS = {
 // and by delayed executions it queues itself (return checks). Every run
 // rebuilds the case from TablesDB, does its part, and ends.
 export default async ({ req, res, log, error }) => {
+  const trigger = req.headers['x-appwrite-trigger'];
+  log(`Started by ${trigger === 'event' ? req.headers['x-appwrite-event'] : trigger}`);
+
   const route = routeExecution(req.headers, req.bodyText);
   if (!route) {
-    log(`Nothing to do for trigger "${req.headers['x-appwrite-trigger']}".`);
+    log('Nothing to do.');
     return res.empty();
   }
 

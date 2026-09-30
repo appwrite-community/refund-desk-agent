@@ -1,11 +1,12 @@
 import { Query } from 'node-appwrite';
-import { DATABASE_ID, STAFF_TEAM_ID, TABLES } from '../config.js';
+import { AGENT_NAME, DATABASE_ID, STAFF_TEAM_ID, TABLES } from '../config.js';
 import { quoteCustomer } from '../lib/agent.js';
+import { reopenApproval } from '../lib/approvals.js';
 import { findRow } from '../lib/context.js';
 import { REASON_LABELS, describeError, truncate } from '../lib/format.js';
 import { structuredOutput } from '../lib/model.js';
 import { completeRefund, startReturn } from '../lib/refunds.js';
-import { Run, runOnce } from '../lib/timeline.js';
+import { runOnce } from '../lib/timeline.js';
 import { DECLINE_PROMPT, DECLINE_SCHEMA } from '../prompts.js';
 
 const TRIGGER_TITLES = {
@@ -42,10 +43,21 @@ export async function decisionJob(ctx, { rowId }) {
 
   const staff = await identifyStaff(ctx, approval);
   if (!staff) {
-    await new Run(ctx, request).error(
-      'Decision ignored',
-      'The approval was changed by a user outside the staff team. It is still waiting for a staff decision.',
-    );
+    // Only staff decide. A change from anyone else, for example an edit in the
+    // Appwrite Console, puts the same recommendation back in the queue.
+    const ignored = {
+      claimId: `apr_${approval.$id}`,
+      actor: 'agent',
+      actorName: AGENT_NAME,
+      title: 'Ignored a decision from outside the staff team',
+      detail: 'Only members of the staff team can decide. The recommendation is back in the approval queue.',
+      visibility: 'staff',
+    };
+    await runOnce(ctx, request, ignored, async (run) => {
+      await reopenApproval(ctx, request, approval);
+      await run.finish('Waiting for staff');
+      ctx.log(`Request ${request.$id}: ignored a decision on ${approval.$id} from outside the staff team`);
+    });
     return;
   }
 

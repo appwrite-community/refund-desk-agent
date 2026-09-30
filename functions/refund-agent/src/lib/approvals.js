@@ -4,7 +4,7 @@ import { truncate } from './format.js';
 
 const MAX_POINTS = 5;
 
-const clean = (points) => [...new Set(points.map((point) => point.trim()).filter(Boolean))].map((point) => truncate(point, 240));
+const clean = (points = []) => [...new Set(points.map((point) => point.trim()).filter(Boolean))].map((point) => truncate(point, 240));
 
 /**
  * Hands the request to staff. The agent only ever creates approvals rows. Staff
@@ -12,9 +12,21 @@ const clean = (points) => [...new Set(points.map((point) => point.trim()).filter
  * updated approvals too, its own writes would trigger it again.
  */
 export async function requestApproval(ctx, run, request, proposal) {
+  const approvalId = await createApproval(ctx, request, proposal);
+  await run.tellCustomer(
+    'A person is reviewing your request',
+    'A member of our support team is reviewing your request and will reply within one business day.',
+  );
+  return approvalId;
+}
+
+/** Puts the same recommendation back in front of staff, as a new approvals row. */
+export function reopenApproval(ctx, request, approval) {
+  return createApproval(ctx, request, approval);
+}
+
+async function createApproval(ctx, request, proposal) {
   const approvalId = ID.unique();
-  const concerns = clean(proposal.concerns).slice(0, MAX_POINTS);
-  const findings = clean(proposal.findings).slice(0, MAX_POINTS);
 
   // The request moves first, so a fast decision always finds it waiting for this approval.
   await ctx.tablesDB.updateRow({
@@ -31,17 +43,13 @@ export async function requestApproval(ctx, run, request, proposal) {
       requestId: request.$id,
       recommendation: proposal.recommendation,
       amountCents: request.amountCents,
-      findings,
-      concerns,
+      findings: clean(proposal.findings).slice(0, MAX_POINTS),
+      concerns: clean(proposal.concerns).slice(0, MAX_POINTS),
       reasoning: truncate(proposal.reasoning, 2000),
       draftQuestion: proposal.draftQuestion ? truncate(proposal.draftQuestion, 500) : null,
       requireReturn: proposal.recommendation === 'refund_after_return',
     },
   });
-  await run.tellCustomer(
-    'A person is reviewing your request',
-    'A member of our support team is reviewing your request and will reply within one business day.',
-  );
   return approvalId;
 }
 

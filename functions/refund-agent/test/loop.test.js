@@ -106,3 +106,16 @@ test('tool definitions are strict and take no IDs', async () => {
     for (const key of Object.keys(fn.parameters.properties)) assert.doesNotMatch(key, /id$/i, `${fn.name}.${key}`);
   }
 });
+
+test('the loop stops when the time budget is spent', async () => {
+  const toolbox = fakeToolbox();
+  const openai = scriptedModel([toolCalls(call('1', 'get_order', {})), toolCalls(call('2', 'finish', {}))]);
+  const create = openai.chat.completions.create;
+  openai.chat.completions.create = async (params) => {
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    return create(params);
+  };
+  const result = await runToolLoop({ openai, model: 'm', messages: [], toolbox, timeBudgetMs: 20 });
+  assert.equal(result.stopReason, 'The review ran out of time.');
+  assert.deepEqual(toolbox.calls, ['get_order']);
+});

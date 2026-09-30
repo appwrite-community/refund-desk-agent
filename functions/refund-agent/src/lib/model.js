@@ -1,6 +1,8 @@
 import OpenAI from 'openai';
 
 export const MAX_ROUNDS = 8;
+// Well inside the function timeout (300 s), so a slow run ends with a hand-off, not a killed execution.
+export const TIME_BUDGET_MS = 150_000;
 
 /** OpenRouter speaks the OpenAI Chat Completions API, so the OpenAI SDK works with a different base URL. */
 export function createModelClient(config) {
@@ -27,10 +29,12 @@ export async function structuredOutput(openai, model, { name, schema, messages }
 /**
  * The tool loop. `tool_choice: 'required'` makes the model call a tool in every
  * round, so the loop ends only when a finishing tool succeeds (the toolbox then
- * reports an outcome) or the rounds run out.
+ * reports an outcome), the rounds run out, or the time budget is spent.
  */
-export async function runToolLoop({ openai, model, messages, toolbox, maxRounds = MAX_ROUNDS }) {
+export async function runToolLoop({ openai, model, messages, toolbox, maxRounds = MAX_ROUNDS, timeBudgetMs = TIME_BUDGET_MS }) {
+  const deadline = Date.now() + timeBudgetMs;
   for (let round = 1; round <= maxRounds; round++) {
+    if (Date.now() > deadline) return { stopReason: 'The review ran out of time.' };
     const completion = await openai.chat.completions.create({
       model,
       messages,
