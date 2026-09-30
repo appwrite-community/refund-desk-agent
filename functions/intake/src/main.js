@@ -64,6 +64,8 @@ async function createRequest({ tablesDB, storage, tokens }, userId, body) {
   const item = JSON.parse(order.items).find((line) => line.sku === input.itemSku);
   if (!item) throw new HttpError(404, 'item_not_found', 'That item is not part of this order.');
 
+  // Check before locking the photo, so a repeat request leaves the new upload alone.
+  await rejectExistingRequest(tablesDB, order.$id, item.sku);
   const photo = input.photoId ? await lockPhoto({ storage, tokens }, userId, input.photoId) : null;
 
   try {
@@ -91,19 +93,27 @@ async function createRequest({ tablesDB, storage, tokens }, userId, body) {
     });
     return { requestId: request.$id, number: requestNumber(request) };
   } catch (err) {
-    // The unique index on (orderId, itemSku) allows one request per item.
+    // The unique index on (orderId, itemSku) allows one request per item, even
+    // when two submissions arrive at the same moment.
     if (err.code === 409 && err.type === 'row_unique_constraint_violation') {
-      const { rows } = await tablesDB.listRows({
-        databaseId: DATABASE_ID,
-        tableId: TABLES.requests,
-        queries: [Query.equal('orderId', [order.$id]), Query.equal('itemSku', [item.sku]), Query.limit(1)],
-      });
-      throw new HttpError(409, 'request_exists', 'You already asked for a refund for this item.', {
-        requestId: rows[0]?.$id,
-        number: rows[0] ? requestNumber(rows[0]) : undefined,
-      });
+      await rejectExistingRequest(tablesDB, order.$id, item.sku);
     }
     throw err;
+  }
+}
+
+/** Answers 409 with the existing request when this item already has one. */
+async function rejectExistingRequest(tablesDB, orderId, itemSku) {
+  const { rows } = await tablesDB.listRows({
+    databaseId: DATABASE_ID,
+    tableId: TABLES.requests,
+    queries: [Query.equal('orderId', [orderId]), Query.equal('itemSku', [itemSku]), Query.limit(1)],
+  });
+  if (rows[0]) {
+    throw new HttpError(409, 'request_exists', 'You already asked for a refund for this item.', {
+      requestId: rows[0].$id,
+      number: requestNumber(rows[0]),
+    });
   }
 }
 
