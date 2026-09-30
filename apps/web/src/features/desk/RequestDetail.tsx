@@ -91,7 +91,7 @@ export function RequestDetail({ requestId, queue, viewer }: { requestId: string;
         )}
       </div>
       {wide && (
-        <aside className="flex w-[360px] shrink-0 flex-col border-l border-border bg-surface/40" aria-labelledby="activity-heading">
+        <aside className="flex w-[344px] shrink-0 flex-col border-l border-border bg-surface/40" aria-labelledby="activity-heading">
           <div className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-5">
             <h2 id="activity-heading" className="text-13 font-medium">
               Activity
@@ -131,10 +131,10 @@ function DetailHeader({ request, queue }: { request: RefundRequest; queue: strin
           <span className="font-mono text-13 font-medium text-subtle">{requestNumber(request)}</span>
           <span className="truncate">{request.itemName}</span>
         </h1>
-        <StatusBadge status={request.status} />
+        <StatusBadge status={request.status} size="sm" />
         <span className="ml-auto text-base font-semibold tracking-[-0.01em] tabular">{money(request.amountCents)}</span>
       </div>
-      <dl className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-border px-6 py-2.5 text-13 text-muted">
+      <dl className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-6 py-2.5 text-13 text-muted">
         <Meta label="Customer" icon={<PersonAvatar name={request.customerName} size="xs" />}>
           <span className="text-foreground">{request.customerName}</span>
         </Meta>
@@ -227,7 +227,7 @@ function CaseCards({ request, steps, approvals, viewer, loading }: CaseCardsProp
   if (inFlight) main = <DecidedCard approval={inFlight} viewerId={viewer.user.$id} />;
   else if (request.status === 'needs_approval') {
     main = pending ? <ApprovalCard key={pending.$id} approval={pending} request={request} viewer={viewer} /> : <Skeleton className="h-52 rounded-lg" />;
-  } else if (request.status === 'working') main = <AgentWorkingCard current={lastRun?.steps.at(-1) ?? lastRun?.trigger ?? undefined} />;
+  } else if (request.status === 'working') main = <AgentWorkingCard run={lastRun} />;
   else if (request.status === 'submitted') main = <SubmittedCard />;
   else if (request.status === 'needs_customer') main = <QuestionCard request={request} approval={latest} />;
   else if (request.status === 'awaiting_return') main = <ReturnCard request={request} />;
@@ -278,7 +278,7 @@ export function DetailSkeleton() {
           <Skeleton className="h-40 rounded-lg" />
         </div>
       </div>
-      <div className="hidden w-[360px] border-l border-border p-5 wide:block">
+      <div className="hidden w-[344px] border-l border-border p-5 wide:block">
         <TimelineSkeleton />
       </div>
     </div>

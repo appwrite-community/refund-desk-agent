@@ -22,7 +22,7 @@ function QueueView() {
 
   return (
     <div className="flex h-full min-h-0">
-      <div className={cn('w-full shrink-0 border-r border-border desk:w-[360px]', requestId && 'hidden desk:block')}>
+      <div className={cn('w-full shrink-0 border-r border-border desk:w-[320px]', requestId && 'hidden desk:block')}>
         <RequestList queue={queue} sort={sort ?? queue.defaultSort} selectedId={requestId} />
       </div>
       <div className={cn('min-w-0 flex-1', !requestId && 'hidden desk:block')}>

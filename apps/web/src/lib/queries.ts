@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query';
 import { AppwriteException, Query, type Models } from 'appwrite';
 import { account, DATABASE_ID, STAFF_TEAM_ID, TABLES, tablesDB, teams } from './appwrite';
+import { hasSessionHint, setSessionHint } from './session-hint';
 import type { Approval, Order, Payment, Policy, RefundRequest, Reply, RunStep } from './types';
 
 export type Viewer = {
@@ -11,11 +12,16 @@ export type Viewer = {
 
 /** The signed-in user and whether they are on the staff team. Null when signed out. */
 export async function fetchViewer(): Promise<Viewer | null> {
+  // Visitors who never signed in on this device have no session to look up.
+  if (!hasSessionHint()) return null;
   let user: Models.User<Models.Preferences>;
   try {
     user = await account.get();
   } catch (err) {
-    if (err instanceof AppwriteException && err.code === 401) return null;
+    if (err instanceof AppwriteException && err.code === 401) {
+      setSessionHint(false);
+      return null;
+    }
     throw err;
   }
   // teams.list() returns only the teams the signed-in user belongs to.

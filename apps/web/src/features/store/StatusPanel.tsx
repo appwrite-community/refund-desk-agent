@@ -118,7 +118,7 @@ function QuestionPanel({ request }: { request: RefundRequest }) {
 function ReturnPanel({ request }: { request: RefundRequest }) {
   const received = request.returnStatus === 'received';
   return (
-    <section className="rounded-lg border border-border bg-surface" aria-live="polite">
+    <section className="overflow-hidden rounded-lg border border-border bg-surface" aria-live="polite">
       <div className="flex gap-4 p-6">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border-strong bg-raised text-muted">
           {received ? <PackageCheck className="size-4" strokeWidth={1.75} aria-hidden /> : <PackageOpen className="size-4" strokeWidth={1.75} aria-hidden />}
@@ -168,7 +168,7 @@ function ReturnPanel({ request }: { request: RefundRequest }) {
 function RefundedPanel({ request }: { request: RefundRequest }) {
   const payment = useQuery({ ...paymentQuery(request.refundId ?? ''), enabled: Boolean(request.refundId) });
   return (
-    <section className="rounded-lg border border-green/25 bg-surface" aria-live="polite">
+    <section className="overflow-hidden rounded-lg border border-green/25 bg-surface" aria-live="polite">
       <div className="flex gap-4 p-6">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-green/30 bg-green/12 text-green">
           <CircleCheck className="size-4" strokeWidth={1.75} aria-hidden />

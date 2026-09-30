@@ -7,9 +7,11 @@ import { Chip } from '@/components/Chip';
 import { CopyButton } from '@/components/CopyButton';
 import { RelativeTime } from '@/components/RelativeTime';
 import { Skeleton } from '@/components/ui/skeleton';
-import { dateTime, money } from '@/lib/format';
+import { useNow } from '@/hooks/use-now';
+import { dateTime, duration, money } from '@/lib/format';
 import { paymentQuery } from '@/lib/queries';
 import { recommendationLabel, recommendationTone } from '@/lib/status';
+import type { Run } from '@/features/timeline/model';
 import type { Approval, RefundRequest, RunStep } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Panel } from './Panel';
@@ -25,7 +27,10 @@ function AgentProgress() {
   );
 }
 
-export function AgentWorkingCard({ current }: { current: RunStep | undefined }) {
+export function AgentWorkingCard({ run }: { run: Run | undefined }) {
+  const now = useNow(1000);
+  const current = run?.steps.at(-1) ?? run?.trigger ?? undefined;
+  const tools = run?.steps.filter((step) => step.kind === 'tool').length ?? 0;
   return (
     <section className="relative overflow-hidden rounded-lg border border-iris/30 bg-surface px-5 py-4" aria-live="polite">
       <AgentProgress />
@@ -37,6 +42,12 @@ export function AgentWorkingCard({ current }: { current: RunStep | undefined }) 
             {current ? current.title : 'Starting the run'}
           </p>
         </div>
+        {run && (
+          <p className="shrink-0 text-right font-mono text-[11px] leading-4 text-subtle tabular">
+            <span className="block text-iris">{duration(Math.max(0, now - run.startedAt))}</span>
+            {tools} {tools === 1 ? 'tool call' : 'tool calls'}
+          </p>
+        )}
       </div>
     </section>
   );
@@ -121,7 +132,7 @@ export function OutcomeCard({ request, steps }: { request: RefundRequest; steps:
 function RefundOutcome({ request }: { request: RefundRequest }) {
   const payment = useQuery({ ...paymentQuery(request.refundId ?? ''), enabled: Boolean(request.refundId) });
   return (
-    <section className="rounded-lg border border-green/25 bg-surface">
+    <section className="overflow-hidden rounded-lg border border-green/25 bg-surface">
       <div className="flex items-center gap-3 px-5 py-4">
         <span className="flex size-8 items-center justify-center rounded-full border border-green/30 bg-green/12 text-green">
           <CircleCheck className="size-4" strokeWidth={1.75} aria-hidden />

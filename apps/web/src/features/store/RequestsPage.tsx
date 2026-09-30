@@ -13,7 +13,7 @@ import { customerRequestsQuery } from '@/lib/queries';
 import { requestNumber } from '@/lib/types';
 import { PageHeader } from './PageHeader';
 
-const columns = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 md:grid-cols-[72px_minmax(0,1fr)_110px_96px_170px_72px_16px]';
+const columns = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 md:grid-cols-[72px_minmax(0,1fr)_110px_96px_170px_96px_16px]';
 
 export function RequestsPage({ customerId }: { customerId: string }) {
   usePageTitle('Refund requests');
@@ -74,7 +74,7 @@ export function RequestsPage({ customerId }: { customerId: string }) {
                   <span>
                     <StatusBadge status={request.status} audience="customer" size="sm" />
                   </span>
-                  <RelativeTime value={request.$updatedAt} className="hidden text-right text-13 text-muted md:block" />
+                  <RelativeTime value={request.$updatedAt} format="ago" className="hidden text-right text-13 text-muted md:block" />
                   <ChevronRight className="hidden size-4 text-subtle transition-transform group-hover:translate-x-0.5 md:block" aria-hidden />
                 </Link>
               </li>

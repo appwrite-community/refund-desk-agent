@@ -14,9 +14,9 @@ import { Route as StoreRouteImport } from './routes/_store'
 import { Route as DeskRouteImport } from './routes/desk'
 import { Route as PolicyRouteImport } from './routes/policy'
 import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as StoreOrdersRouteImport } from './routes/_store/orders'
 import { Route as DeskIndexRouteImport } from './routes/desk/index'
 import { Route as DeskQueueRouteImport } from './routes/desk/$queue'
+import { Route as StoreOrdersIndexRouteImport } from './routes/_store/orders.index'
 import { Route as StoreRequestsIndexRouteImport } from './routes/_store/requests.index'
 import { Route as StoreRequestsRequestIdRouteImport } from './routes/_store/requests.$requestId'
 import { Route as DeskQueueIndexRouteImport } from './routes/desk/$queue.index'
@@ -47,11 +47,6 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StoreOrdersRoute = StoreOrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => StoreRoute,
-} as any)
 const DeskIndexRoute = DeskIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,6 +56,11 @@ const DeskQueueRoute = DeskQueueRouteImport.update({
   id: '/$queue',
   path: '/$queue',
   getParentRoute: () => DeskRoute,
+} as any)
+const StoreOrdersIndexRoute = StoreOrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => StoreRoute,
 } as any)
 const StoreRequestsIndexRoute = StoreRequestsIndexRouteImport.update({
   id: '/requests/',
@@ -84,9 +84,9 @@ const DeskQueueRequestIdRoute = DeskQueueRequestIdRouteImport.update({
 } as any)
 const StoreOrdersOrderIdRefundRoute =
   StoreOrdersOrderIdRefundRouteImport.update({
-    id: '/$orderId/refund',
-    path: '/$orderId/refund',
-    getParentRoute: () => StoreOrdersRoute,
+    id: '/orders/$orderId/refund',
+    path: '/orders/$orderId/refund',
+    getParentRoute: () => StoreRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -94,11 +94,11 @@ export interface FileRoutesByFullPath {
   '/desk': typeof DeskRouteWithChildren
   '/policy': typeof PolicyRoute
   '/sign-in': typeof SignInRoute
-  '/orders': typeof StoreOrdersRouteWithChildren
   '/desk/$queue': typeof DeskQueueRouteWithChildren
   '/desk/': typeof DeskIndexRoute
   '/requests/$requestId': typeof StoreRequestsRequestIdRoute
   '/desk/$queue/$requestId': typeof DeskQueueRequestIdRoute
+  '/orders/': typeof StoreOrdersIndexRoute
   '/requests/': typeof StoreRequestsIndexRoute
   '/desk/$queue/': typeof DeskQueueIndexRoute
   '/orders/$orderId/refund': typeof StoreOrdersOrderIdRefundRoute
@@ -107,10 +107,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/policy': typeof PolicyRoute
   '/sign-in': typeof SignInRoute
-  '/orders': typeof StoreOrdersRouteWithChildren
   '/desk': typeof DeskIndexRoute
   '/requests/$requestId': typeof StoreRequestsRequestIdRoute
   '/desk/$queue/$requestId': typeof DeskQueueRequestIdRoute
+  '/orders': typeof StoreOrdersIndexRoute
   '/requests': typeof StoreRequestsIndexRoute
   '/desk/$queue': typeof DeskQueueIndexRoute
   '/orders/$orderId/refund': typeof StoreOrdersOrderIdRefundRoute
@@ -122,11 +122,11 @@ export interface FileRoutesById {
   '/desk': typeof DeskRouteWithChildren
   '/policy': typeof PolicyRoute
   '/sign-in': typeof SignInRoute
-  '/_store/orders': typeof StoreOrdersRouteWithChildren
   '/desk/$queue': typeof DeskQueueRouteWithChildren
   '/desk/': typeof DeskIndexRoute
   '/_store/requests/$requestId': typeof StoreRequestsRequestIdRoute
   '/desk/$queue/$requestId': typeof DeskQueueRequestIdRoute
+  '/_store/orders/': typeof StoreOrdersIndexRoute
   '/_store/requests/': typeof StoreRequestsIndexRoute
   '/desk/$queue/': typeof DeskQueueIndexRoute
   '/_store/orders/$orderId/refund': typeof StoreOrdersOrderIdRefundRoute
@@ -138,11 +138,11 @@ export interface FileRouteTypes {
     | '/desk'
     | '/policy'
     | '/sign-in'
-    | '/orders'
     | '/desk/$queue'
     | '/desk/'
     | '/requests/$requestId'
     | '/desk/$queue/$requestId'
+    | '/orders/'
     | '/requests/'
     | '/desk/$queue/'
     | '/orders/$orderId/refund'
@@ -151,10 +151,10 @@ export interface FileRouteTypes {
     | '/'
     | '/policy'
     | '/sign-in'
-    | '/orders'
     | '/desk'
     | '/requests/$requestId'
     | '/desk/$queue/$requestId'
+    | '/orders'
     | '/requests'
     | '/desk/$queue'
     | '/orders/$orderId/refund'
@@ -165,11 +165,11 @@ export interface FileRouteTypes {
     | '/desk'
     | '/policy'
     | '/sign-in'
-    | '/_store/orders'
     | '/desk/$queue'
     | '/desk/'
     | '/_store/requests/$requestId'
     | '/desk/$queue/$requestId'
+    | '/_store/orders/'
     | '/_store/requests/'
     | '/desk/$queue/'
     | '/_store/orders/$orderId/refund'
@@ -220,13 +220,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_store/orders': {
-      id: '/_store/orders'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof StoreOrdersRouteImport
-      parentRoute: typeof StoreRoute
-    }
     '/desk/': {
       id: '/desk/'
       path: '/'
@@ -240,6 +233,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/desk/$queue'
       preLoaderRoute: typeof DeskQueueRouteImport
       parentRoute: typeof DeskRoute
+    }
+    '/_store/orders/': {
+      id: '/_store/orders/'
+      path: '/orders'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof StoreOrdersIndexRouteImport
+      parentRoute: typeof StoreRoute
     }
     '/_store/requests/': {
       id: '/_store/requests/'
@@ -271,36 +271,26 @@ declare module '@tanstack/react-router' {
     }
     '/_store/orders/$orderId/refund': {
       id: '/_store/orders/$orderId/refund'
-      path: '/$orderId/refund'
+      path: '/orders/$orderId/refund'
       fullPath: '/orders/$orderId/refund'
       preLoaderRoute: typeof StoreOrdersOrderIdRefundRouteImport
-      parentRoute: typeof StoreOrdersRoute
+      parentRoute: typeof StoreRoute
     }
   }
 }
 
-interface StoreOrdersRouteChildren {
+interface StoreRouteChildren {
+  StoreRequestsRequestIdRoute: typeof StoreRequestsRequestIdRoute
+  StoreOrdersIndexRoute: typeof StoreOrdersIndexRoute
+  StoreRequestsIndexRoute: typeof StoreRequestsIndexRoute
   StoreOrdersOrderIdRefundRoute: typeof StoreOrdersOrderIdRefundRoute
 }
 
-const StoreOrdersRouteChildren: StoreOrdersRouteChildren = {
-  StoreOrdersOrderIdRefundRoute: StoreOrdersOrderIdRefundRoute,
-}
-
-const StoreOrdersRouteWithChildren = StoreOrdersRoute._addFileChildren(
-  StoreOrdersRouteChildren,
-)
-
-interface StoreRouteChildren {
-  StoreOrdersRoute: typeof StoreOrdersRouteWithChildren
-  StoreRequestsRequestIdRoute: typeof StoreRequestsRequestIdRoute
-  StoreRequestsIndexRoute: typeof StoreRequestsIndexRoute
-}
-
 const StoreRouteChildren: StoreRouteChildren = {
-  StoreOrdersRoute: StoreOrdersRouteWithChildren,
   StoreRequestsRequestIdRoute: StoreRequestsRequestIdRoute,
+  StoreOrdersIndexRoute: StoreOrdersIndexRoute,
   StoreRequestsIndexRoute: StoreRequestsIndexRoute,
+  StoreOrdersOrderIdRefundRoute: StoreOrdersOrderIdRefundRoute,
 }
 
 const StoreRouteWithChildren = StoreRoute._addFileChildren(StoreRouteChildren)

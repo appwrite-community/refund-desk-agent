@@ -48,7 +48,7 @@ export function OrderCard({ order, requests }: { order: Order; requests: RefundR
                 </p>
               </div>
               <span className="w-20 text-right text-sm tabular">{money(item.unitPriceCents * item.quantity)}</span>
-              <div className="flex w-full justify-end sm:w-52">
+              <div className="flex w-full justify-end sm:w-60">
                 {request ? <RequestLink request={request} /> : <RefundAction order={order} sku={item.sku} />}
               </div>
             </li>
@@ -64,7 +64,7 @@ function RequestLink({ request }: { request: RefundRequest }) {
     <Link
       to="/requests/$requestId"
       params={{ requestId: request.$id }}
-      className="group inline-flex items-center gap-2.5 rounded-sm py-1 text-13 font-medium text-foreground"
+      className="group inline-flex items-center gap-2.5 rounded-sm py-1 text-13 font-medium whitespace-nowrap text-foreground"
     >
       <StatusBadge status={request.status} audience="customer" size="sm" />
       <span className="underline-offset-4 group-hover:underline">Request {requestNumber(request)}</span>

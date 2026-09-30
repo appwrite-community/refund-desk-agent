@@ -110,63 +110,67 @@ export function ApprovalCard({ approval, request, viewer }: ApprovalCardProps) {
         </div>
       </div>
 
-      <footer className="flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-border px-5 py-3.5">
-        <div className="flex items-center gap-2.5">
-          <Switch id={`return-${approval.$id}`} checked={requireReturn} onCheckedChange={setRequireReturn} disabled={mutation.isPending} />
-          <Label htmlFor={`return-${approval.$id}`} className="text-13 font-normal text-muted">
+      <div className="flex items-center gap-4 border-t border-border px-5 py-3">
+        <div className="min-w-0 flex-1">
+          <Label htmlFor={`return-${approval.$id}`} className="text-13">
             Require return first
           </Label>
+          <p className="text-xs text-muted">Send a return code now and refund when the item arrives.</p>
         </div>
-        <div className="ml-auto flex flex-wrap gap-2">
-          <Popover open={confirming} onOpenChange={setConfirming}>
-            <PopoverAnchor asChild>
-              <Button
-                size="sm"
-                variant={recommended === 'approve' ? 'default' : 'secondary'}
-                pending={mutation.isPending && mutation.variables?.decision === 'approve'}
-                disabled={mutation.isPending}
-                onClick={() => submit('approve')}
-              >
-                Approve refund
-                <Kbd>A</Kbd>
+        <Switch id={`return-${approval.$id}`} checked={requireReturn} onCheckedChange={setRequireReturn} disabled={mutation.isPending} />
+      </div>
+
+      <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-border bg-background/40 px-5 py-3.5">
+        <Button
+          size="sm"
+          variant={recommended === 'decline' ? 'default' : 'ghost'}
+          disabled={mutation.isPending}
+          onClick={() => setDialog('decline')}
+        >
+          Decline
+          <Kbd>D</Kbd>
+        </Button>
+        <Button
+          size="sm"
+          variant={recommended === 'ask_customer' ? 'default' : 'secondary'}
+          disabled={mutation.isPending}
+          onClick={() => setDialog('ask')}
+        >
+          Ask customer
+          <Kbd>Q</Kbd>
+        </Button>
+        <Popover open={confirming} onOpenChange={setConfirming}>
+          <PopoverAnchor asChild>
+            <Button
+              size="sm"
+              variant={recommended === 'approve' ? 'default' : 'secondary'}
+              pending={mutation.isPending && mutation.variables?.decision === 'approve'}
+              disabled={mutation.isPending}
+              onClick={() => setConfirming(true)}
+            >
+              Approve refund
+              <Kbd>A</Kbd>
+            </Button>
+          </PopoverAnchor>
+          <PopoverContent side="top" align="end" className="w-64">
+            <p className="text-13 font-medium">
+              {requireReturn ? `Send a return code for ${money(amount)}?` : `Refund ${money(amount)} now?`}
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              {requireReturn
+                ? 'The refund follows when the item arrives.'
+                : `The agent refunds ${request.customerName} to the card they paid with.`}
+            </p>
+            <div className="mt-3 flex justify-end gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setConfirming(false)}>
+                Cancel
               </Button>
-            </PopoverAnchor>
-            <PopoverContent side="top" align="end" className="w-64">
-              <p className="text-13 font-medium">
-                {requireReturn ? `Send a return code for ${money(amount)}?` : `Refund ${money(amount)} now?`}
-              </p>
-              <p className="mt-1 text-xs text-muted">
-                {requireReturn ? 'The refund follows when the item arrives.' : `The agent refunds the customer's ${request.itemName.toLowerCase()}.`}
-              </p>
-              <div className="mt-3 flex justify-end gap-2">
-                <Button size="sm" variant="ghost" onClick={() => setConfirming(false)}>
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={() => submit('approve')} pending={mutation.isPending} autoFocus>
-                  Approve
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-          <Button
-            size="sm"
-            variant={recommended === 'ask_customer' ? 'default' : 'secondary'}
-            disabled={mutation.isPending}
-            onClick={() => setDialog('ask')}
-          >
-            Ask customer
-            <Kbd>Q</Kbd>
-          </Button>
-          <Button
-            size="sm"
-            variant={recommended === 'decline' ? 'default' : 'ghost'}
-            disabled={mutation.isPending}
-            onClick={() => setDialog('decline')}
-          >
-            Decline
-            <Kbd>D</Kbd>
-          </Button>
-        </div>
+              <Button size="sm" onClick={() => submit('approve')} pending={mutation.isPending} autoFocus>
+                Approve
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </footer>
 
       <NoteDialog

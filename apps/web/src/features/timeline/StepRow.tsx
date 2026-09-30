@@ -9,7 +9,6 @@ import {
   Eye,
   History,
   Hourglass,
-  Loader2,
   MessageCircleQuestionMark,
   MessageSquare,
   PackageOpen,
@@ -21,9 +20,10 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useLayoutEffect, useRef, useState } from 'react';
+import { useNow } from '@/hooks/use-now';
 import { PersonAvatar, ScheduleAvatar, StoreAvatar } from '@/components/Avatars';
 import { Tooltip } from '@/components/ui/tooltip';
-import { duration, timestamp } from '@/lib/format';
+import { duration, timestamp, toMs } from '@/lib/format';
 import type { RunStep } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -75,7 +75,7 @@ function Marker({ step }: { step: RunStep }) {
   return (
     <span
       className={cn(
-        'flex size-5 shrink-0 items-center justify-center rounded-[6px]',
+        'relative flex size-5 shrink-0 items-center justify-center rounded-[6px]',
         step.kind === 'error' || step.status === 'failed'
           ? 'bg-rose/12 text-rose ring-1 ring-rose/30 ring-inset'
           : finish
@@ -83,11 +83,8 @@ function Marker({ step }: { step: RunStep }) {
             : 'bg-iris/12 text-iris ring-1 ring-iris/30 ring-inset',
       )}
     >
-      {step.status === 'running' ? (
-        <Loader2 className="size-3 animate-spin" aria-hidden />
-      ) : (
-        <Icon className="size-3" strokeWidth={2} aria-hidden />
-      )}
+      <Icon className="size-3" strokeWidth={2} aria-hidden />
+      {step.status === 'running' && <span className="absolute -top-0.5 -right-0.5 size-1.5 animate-agent-pulse rounded-full bg-iris" aria-hidden />}
     </span>
   );
 }
@@ -120,25 +117,27 @@ export function StepRow({ step, last }: { step: RunStep; last: boolean }) {
         <div className="flex items-start gap-2">
           <p className={cn('min-w-0 flex-1 text-13 font-medium', running ? 'text-shimmer' : step.kind === 'error' ? 'text-rose' : 'text-foreground')}>
             {step.title}
+          </p>
+          <span className="mt-px flex shrink-0 items-center gap-1.5 font-mono text-[11px] leading-[18px] text-subtle tabular">
             {step.visibility === 'customer' && (
               <Tooltip content="The customer sees this update">
-                <span className="ml-1.5 inline-flex translate-y-0.5 text-subtle">
+                <span className="inline-flex" tabIndex={0}>
                   <Eye className="size-3.5" aria-label="Visible to the customer" />
                 </span>
               </Tooltip>
             )}
-          </p>
-          <Tooltip content={timestamp(step.$createdAt)}>
-            <span className="mt-px shrink-0 font-mono text-[11px] leading-[18px] text-subtle tabular">
-              {running ? (
-                <span className="text-iris">running</span>
-              ) : step.durationMs !== null ? (
-                duration(step.durationMs)
-              ) : (
-                clock.format(new Date(step.$createdAt))
-              )}
-            </span>
-          </Tooltip>
+            <Tooltip content={timestamp(step.$createdAt)}>
+              <span>
+                {running ? (
+                  <Elapsed since={step.$createdAt} />
+                ) : step.durationMs !== null ? (
+                  duration(step.durationMs)
+                ) : (
+                  clock.format(new Date(step.$createdAt))
+                )}
+              </span>
+            </Tooltip>
+          </span>
         </div>
         {step.detail && (
           <>
@@ -163,4 +162,10 @@ export function StepRow({ step, last }: { step: RunStep; last: boolean }) {
       </div>
     </li>
   );
+}
+
+/** A tool call in progress: its running time, updated live. */
+function Elapsed({ since }: { since: string }) {
+  const now = useNow(200);
+  return <span className="text-iris">{duration(Math.max(0, now - toMs(since)))}</span>;
 }
