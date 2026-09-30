@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useNow } from '@/hooks/use-now';
-import { PersonAvatar, ScheduleAvatar, StoreAvatar } from '@/components/Avatars';
+import { AgentAvatar, PersonAvatar, ScheduleAvatar, StoreAvatar } from '@/components/Avatars';
 import { Tooltip } from '@/components/ui/tooltip';
 import { duration, timestamp, toMs } from '@/lib/format';
 import type { RunStep } from '@/lib/types';
@@ -46,12 +46,15 @@ const FINISH: Record<string, { icon: LucideIcon; className: string }> = {
   'Waiting for the return': { icon: PackageOpen, className: 'text-muted' },
 };
 
+const ACTOR_ROLES: Record<RunStep['actor'], string> = { staff: 'Staff', customer: 'Customer', system: 'Scheduled', agent: 'Agent' };
+
 const clock = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
 
 /** The icon or avatar in the rail. Agent steps are iris; people are neutral initials. */
 function Marker({ step }: { step: RunStep }) {
   if (step.kind === 'trigger') {
     if (step.actor === 'system') return <ScheduleAvatar size="xs" />;
+    if (step.actor === 'agent') return <AgentAvatar size="xs" />;
     return <PersonAvatar name={step.actorName} size="xs" />;
   }
   if (step.kind === 'message' && step.actor === 'system') return <StoreAvatar size="xs" />;
@@ -111,7 +114,7 @@ export function StepRow({ step, last }: { step: RunStep; last: boolean }) {
         {person && (
           <p className="text-xs text-muted">
             <span className="font-medium text-foreground">{step.actorName}</span>
-            <span className="text-subtle"> · {step.actor === 'staff' ? 'Staff' : step.actor === 'customer' ? 'Customer' : 'Scheduled'}</span>
+            <span className="text-subtle"> · {ACTOR_ROLES[step.actor]}</span>
           </p>
         )}
         <div className="flex items-start gap-2">

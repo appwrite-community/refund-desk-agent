@@ -246,7 +246,7 @@ function CaseCards({ request, steps, approvals, viewer, loading }: CaseCardsProp
   return (
     <>
       {main}
-      {request.status !== 'needs_customer' || history.length > 1 ? <DecisionHistory approvals={history} /> : null}
+      {request.status !== 'needs_customer' || history.length > 1 ? <DecisionHistory approvals={history} steps={steps} /> : null}
     </>
   );
 }

@@ -32,7 +32,7 @@ export function Timeline({ steps, request }: { steps: RunStep[]; request: Refund
     <div>
       {runs.map((run, index) => {
         const next = runs[index + 1];
-        const who = next?.trigger?.actor === 'staff' ? 'staff' : next?.trigger?.actor === 'customer' ? 'customer' : 'return';
+        const who = next?.trigger?.actor === 'customer' ? 'customer' : next?.trigger?.actor === 'system' ? 'return' : 'staff';
         return (
           <Fragment key={run.runId}>
             <RunGroup run={run} now={now} />

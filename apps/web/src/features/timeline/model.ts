@@ -26,7 +26,11 @@ const RUN_LABELS: Record<RunKind, string> = {
 // from what started it: req_<requestId>, apr_<approvalId>, rep_<approvalId>, chk_<requestId>_<attempt>.
 const TRIGGER_PREFIXES: Record<string, RunKind> = { req: 'intake', apr: 'decision', rep: 'reply', chk: 'return_check' };
 
-export const runLabel = (run: Run) => (run.kind ? RUN_LABELS[run.kind] : (run.trigger?.title ?? 'Run'));
+export function runLabel(run: Run) {
+  // A decision made outside the staff team is not carried out; the agent reopens the recommendation.
+  if (run.kind === 'decision' && run.trigger?.actor === 'agent') return 'Ignored decision';
+  return run.kind ? RUN_LABELS[run.kind] : (run.trigger?.title ?? 'Run');
+}
 
 const stepEnd = (step: RunStep) => toMs(step.$createdAt) + (step.durationMs ?? 0);
 

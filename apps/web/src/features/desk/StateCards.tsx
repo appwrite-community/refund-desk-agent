@@ -72,7 +72,7 @@ export function DecidedCard({ approval, viewerId }: { approval: Approval; viewer
         <AgentAvatar size="md" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">
-            {verb} by {byMe ? 'you' : approval.decidedByName}
+            {verb} by {byMe ? 'you' : (approval.decidedByName ?? 'someone')}
             {!byMe && approval.decidedAt && (
               <span className="font-normal text-muted">
                 {' '}
@@ -94,7 +94,7 @@ export function QuestionCard({ request, approval }: { request: RefundRequest; ap
       aside={
         approval?.decidedAt && (
           <span className="text-xs text-muted">
-            {approval.decidedByName} · <RelativeTime value={approval.decidedAt} format="ago" />
+            {approval.decidedByName ?? 'Staff'} · <RelativeTime value={approval.decidedAt} format="ago" />
           </span>
         )
       }
@@ -187,8 +187,10 @@ function StateCard({ icon: Icon, title, tone, children }: { icon: LucideIcon; ti
 }
 
 /** Past recommendations and what staff decided, oldest first. */
-export function DecisionHistory({ approvals }: { approvals: Approval[] }) {
+export function DecisionHistory({ approvals, steps }: { approvals: Approval[]; steps: RunStep[] }) {
   if (approvals.length === 0) return null;
+  // The run a decision starts is claimed as apr_<approvalId>. The agent claims it itself when the decision came from outside the staff team.
+  const ignored = new Set(steps.filter((step) => step.kind === 'trigger' && step.actor === 'agent').map((step) => step.$id));
   return (
     <Panel title="Decisions">
       <ol className="divide-y divide-border">
@@ -202,7 +204,7 @@ export function DecisionHistory({ approvals }: { approvals: Approval[] }) {
             </div>
             {approval.decision ? (
               <p className="mt-1.5 text-13">
-                <span className="font-medium">{approval.decidedByName}</span>{' '}
+                <span className="font-medium">{approval.decidedByName ?? 'Someone'}</span>{' '}
                 <span className="text-muted">
                   {(approval.decision === 'approve' && approval.requireReturn ? 'approved with a return' : DECISION_VERBS[approval.decision].toLowerCase())}
                   {approval.decidedAt && (
@@ -220,6 +222,12 @@ export function DecisionHistory({ approvals }: { approvals: Approval[] }) {
               </p>
             )}
             {approval.staffNote && <p className="mt-1.5 border-l-2 border-border-strong pl-3 text-13 whitespace-pre-line text-muted">{approval.staffNote}</p>}
+            {ignored.has(`apr_${approval.$id}`) && (
+              <p className="mt-1.5 flex items-center gap-1.5 text-13 text-muted">
+                <TriangleAlert className="size-3.5 text-amber" aria-hidden />
+                Not carried out: the change came from outside the staff team.
+              </p>
+            )}
           </li>
         ))}
       </ol>
