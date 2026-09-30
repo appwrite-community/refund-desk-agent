@@ -16,6 +16,7 @@ import {
   tablesDB,
   teams,
 } from './lib/client.ts';
+import { plural } from './lib/format.ts';
 import { waitFor } from './lib/wait.ts';
 import { BUCKET, DATABASE, FUNCTIONS, STAFF_TEAM, TABLES, type Column, type FunctionConfig, type Table } from './schema.ts';
 
@@ -101,7 +102,7 @@ async function provisionTable(table: Table) {
     if (failed) throw new Error(`Index ${tableId}.${failed.key} failed: ${failed.error}`);
     return indexes.every((index) => index.status === 'available') ? true : undefined;
   });
-  console.log(`Table ${tableId} (${table.columns.length} columns, ${table.indexes.length} indexes)`);
+  console.log(`Table ${tableId} (${plural(table.columns.length, 'column')}, ${plural(table.indexes.length, 'index', 'indexes')})`);
 }
 
 async function provisionBucket() {

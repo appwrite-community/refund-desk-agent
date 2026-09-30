@@ -5,6 +5,7 @@ const monthDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeri
 
 export const money = (cents: number) => usd.format(cents / 100);
 export const shortDate = (ms: number) => monthDay.format(new Date(ms));
+export const plural = (count: number, one: string, many = `${one}s`) => `${count} ${count === 1 ? one : many}`;
 
 const BASE32 = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
