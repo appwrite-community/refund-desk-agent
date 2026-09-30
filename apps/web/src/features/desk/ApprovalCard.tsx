@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppwriteException } from 'appwrite';
 import { ChevronDown, CircleAlert, CircleCheck, TriangleAlert } from 'lucide-react';
-import { useState, type KeyboardEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { AgentAvatar } from '@/components/Avatars';
 import { Chip } from '@/components/Chip';
@@ -58,22 +58,25 @@ export function ApprovalCard({ approval, request, viewer }: ApprovalCardProps) {
   // The agent's recommendation gets the primary button. A manual review recommends nothing.
   const recommended: Decision | null = RECOMMENDED_DECISION[approval.recommendation];
 
-  function onKeyDown(event: KeyboardEvent<HTMLElement>) {
-    if (event.target !== event.currentTarget || mutation.isPending || event.metaKey || event.ctrlKey || event.altKey) return;
-    if (event.key === 'a') setConfirming(true);
-    else if (event.key === 'q') setDialog('ask');
-    else if (event.key === 'd') setDialog('decline');
-    else return;
-    event.preventDefault();
-  }
+  // A, Q, and D work anywhere on the desk while this card is open, except while typing or in a dialog.
+  const busy = mutation.isPending || confirming || dialog !== null;
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (busy || event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement;
+      if (target.closest('input, textarea, select, [contenteditable], [role=dialog], [role=menu]')) return;
+      if (event.key === 'a') setConfirming(true);
+      else if (event.key === 'q') setDialog('ask');
+      else if (event.key === 'd') setDialog('decline');
+      else return;
+      event.preventDefault();
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [busy]);
 
   return (
-    <section
-      tabIndex={0}
-      onKeyDown={onKeyDown}
-      aria-label="Approval"
-      className="rounded-lg border border-amber/25 bg-surface outline-offset-2 focus-visible:outline-2"
-    >
+    <section aria-label="Approval" className="rounded-lg border border-amber/25 bg-surface">
       <header className="flex items-start gap-3 border-b border-border px-5 py-3.5">
         <AgentAvatar size="md" />
         <div className="min-w-0 flex-1">
