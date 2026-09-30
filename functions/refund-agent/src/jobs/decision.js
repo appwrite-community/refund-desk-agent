@@ -1,13 +1,12 @@
 import { Query } from 'node-appwrite';
 import { AGENT_NAME, DATABASE_ID, STAFF_TEAM_ID, TABLES } from '../config.js';
-import { quoteCustomer } from '../lib/agent.js';
 import { reopenApproval } from '../lib/approvals.js';
 import { findRow } from '../lib/context.js';
 import { REASON_LABELS, describeError, truncate } from '../lib/format.js';
 import { structuredOutput } from '../lib/model.js';
 import { completeRefund, startReturn } from '../lib/refunds.js';
 import { runOnce } from '../lib/timeline.js';
-import { DECLINE_PROMPT, DECLINE_SCHEMA } from '../prompts.js';
+import { DECLINE_PROMPT, DECLINE_SCHEMA, quoteCustomer } from '../prompts.js';
 
 const TRIGGER_TITLES = {
   approve: 'Approved the refund',

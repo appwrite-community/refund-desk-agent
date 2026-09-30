@@ -1,14 +1,8 @@
-import { agentPrompt } from '../prompts.js';
+import { agentPrompt, quoteCustomer } from '../prompts.js';
 import { escalate } from './approvals.js';
 import { REASON_LABELS, describeError, money, requestNumber } from './format.js';
 import { runToolLoop } from './model.js';
 import { createToolbox } from './tools.js';
-
-/** Wraps customer text in tags the prompt tells the model to distrust. */
-export function quoteCustomer(text) {
-  const safe = String(text).replace(/<\/?customer_text[^>]*>/gi, '');
-  return `<customer_text>\n${safe}\n</customer_text>`;
-}
 
 /**
  * Everything the model knows about the case, rebuilt from rows on every run.
