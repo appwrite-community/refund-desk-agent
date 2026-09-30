@@ -38,14 +38,18 @@ export async function startRun(ctx, request, trigger) {
 export async function runOnce(ctx, request, trigger, work) {
   const run = await startRun(ctx, request, trigger);
   if (!run) return;
-  await setStatus(ctx, request, 'working');
+  let started = false;
   try {
+    await setStatus(ctx, request, 'working');
+    started = true;
     await work(run);
   } catch (err) {
     ctx.error(`Run failed: ${describeError(err)}`);
     await run.error('The agent hit a problem', describeError(err));
     const current = await ctx.tablesDB.getRow({ databaseId: DATABASE_ID, tableId: TABLES.requests, rowId: request.$id });
-    if (current.status === 'working') {
+    // The run claimed the trigger, so no other run picks this request up. If it
+    // never reached `working`, or is still there, hand it to a person.
+    if (!started || current.status === 'working') {
       await escalate(ctx, run, current, 'The agent hit an error while working on this request.');
     }
   }

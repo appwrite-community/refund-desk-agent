@@ -35,21 +35,33 @@ async function createApproval(ctx, request, proposal) {
     rowId: request.$id,
     data: { status: 'needs_approval', pendingApprovalId: approvalId },
   });
-  await ctx.tablesDB.createRow({
-    databaseId: DATABASE_ID,
-    tableId: TABLES.approvals,
-    rowId: approvalId,
-    data: {
-      requestId: request.$id,
-      recommendation: proposal.recommendation,
-      amountCents: request.amountCents,
-      findings: clean(proposal.findings).slice(0, MAX_POINTS),
-      concerns: clean(proposal.concerns).slice(0, MAX_POINTS),
-      reasoning: truncate(proposal.reasoning, 2000),
-      draftQuestion: proposal.draftQuestion ? truncate(proposal.draftQuestion, 500) : null,
-      requireReturn: proposal.recommendation === 'refund_after_return',
-    },
-  });
+  try {
+    await ctx.tablesDB.createRow({
+      databaseId: DATABASE_ID,
+      tableId: TABLES.approvals,
+      rowId: approvalId,
+      data: {
+        requestId: request.$id,
+        recommendation: proposal.recommendation,
+        amountCents: request.amountCents,
+        findings: clean(proposal.findings).slice(0, MAX_POINTS),
+        concerns: clean(proposal.concerns).slice(0, MAX_POINTS),
+        reasoning: truncate(proposal.reasoning, 2000),
+        draftQuestion: proposal.draftQuestion ? truncate(proposal.draftQuestion, 500) : null,
+        requireReturn: proposal.recommendation === 'refund_after_return',
+      },
+    });
+  } catch (err) {
+    // Without the approvals row, staff have nothing to decide. Move the request
+    // back to `working`, so the run's error handler hands it to staff again.
+    await ctx.tablesDB.updateRow({
+      databaseId: DATABASE_ID,
+      tableId: TABLES.requests,
+      rowId: request.$id,
+      data: { status: 'working', pendingApprovalId: null },
+    });
+    throw err;
+  }
   return approvalId;
 }
 
