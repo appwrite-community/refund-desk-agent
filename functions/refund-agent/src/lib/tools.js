@@ -125,7 +125,10 @@ async function loadHistory(ctx, request) {
  */
 export function createToolbox(ctx, run, request, { job, replies = [] }) {
   const canRefund = job === 'intake';
+  const latestReplyWithPhoto = [...replies].reverse().find((row) => row.photoId);
+  const photoSources = [request.photoId && 'request', latestReplyWithPhoto && 'latest_reply'].filter(Boolean);
   const inspections = {};
+  const inspected = new Set();
   const cache = new Map();
   const once = (key, load) => {
     if (!cache.has(key)) {
@@ -197,12 +200,14 @@ export function createToolbox(ctx, run, request, { job, replies = [] }) {
 
     inspect_photo: ({ source }) =>
       run.tool('inspect_photo', source === 'latest_reply' ? 'Inspecting the photo in the answer' : 'Inspecting the photo', async () => {
-        const reply = [...replies].reverse().find((row) => row.photoId);
         const [fileId, customerText] =
-          source === 'latest_reply' ? [reply?.photoId, reply?.message] : [request.photoId, request.details];
+          source === 'latest_reply'
+            ? [latestReplyWithPhoto?.photoId, latestReplyWithPhoto?.message]
+            : [request.photoId, request.details];
         if (!fileId) {
           return { result: { photo: 'missing' }, title: 'No photo to inspect', detail: `No photo on the ${source === 'latest_reply' ? 'answer' : 'request'}.` };
         }
+        inspected.add(source); // Counts even if the inspection fails, so a broken photo cannot block the hand-off.
         const inspection = await inspectPhoto(ctx, { fileId, itemName: request.itemName, reason: request.reason, customerText });
         inspections[source] = inspection;
         return {
@@ -212,12 +217,16 @@ export function createToolbox(ctx, run, request, { job, replies = [] }) {
         };
       }),
 
-    request_approval: (args) =>
-      run.tool('request_approval', 'Preparing the hand-off to staff', async () => {
-        if (!RECOMMENDATIONS.includes(args.recommendation)) throw new Error('Choose one of the listed recommendations.');
-        if (args.recommendation === 'ask_customer' && !args.draftQuestion?.trim()) {
-          throw new Error('Write the question for the customer in draftQuestion.');
-        }
+    request_approval: (args) => {
+      // Checked before the step is written: a rejected call goes back to the model, not to the timeline.
+      if (!RECOMMENDATIONS.includes(args.recommendation)) throw new Error('Choose one of the listed recommendations.');
+      if (args.recommendation === 'ask_customer' && !args.draftQuestion?.trim()) {
+        throw new Error('Write the question for the customer in draftQuestion.');
+      }
+      const uninspected = photoSources.find((source) => !inspected.has(source));
+      if (uninspected) throw new Error(`Staff need every photo checked. Call inspect_photo with source "${uninspected}" first.`);
+
+      return run.tool('request_approval', 'Preparing the hand-off to staff', async () => {
         const ruleConcerns = (await failedRules()).filter((rule) => rule.rule !== 'first_review').map((rule) => rule.message);
         const approvalId = await requestApproval(ctx, run, request, {
           recommendation: args.recommendation,
@@ -232,7 +241,8 @@ export function createToolbox(ctx, run, request, { job, replies = [] }) {
           title: `Sent to staff: ${recommendationText(args.recommendation, request.amountCents)}`,
           detail: args.reasoning,
         };
-      }),
+      });
+    },
   };
 
   if (canRefund) {
@@ -244,7 +254,7 @@ export function createToolbox(ctx, run, request, { job, replies = [] }) {
             result: {
               ok: false,
               failedRules: failures,
-              next: 'Call request_approval. Staff see these rules as concerns.',
+              next: 'Call request_approval. Staff see these failed rules as concerns already, so do not repeat them in concerns.',
             },
             title: 'Automatic refund blocked',
             detail: failures.map((failure) => failure.message).join(' '),

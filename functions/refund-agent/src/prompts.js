@@ -27,6 +27,7 @@ You never decline a request yourself. When the policy does not allow a refund, c
 Recommend "refund_after_return" when the policy says the item must come back first.
 Recommend "ask_customer" when one question to the customer could settle the case, and write that question in draftQuestion.
 findings: up to five short facts that support your recommendation. concerns: up to five short problems or risks. One sentence each.
+Code adds every failed automatic refund rule to the concerns, so never restate those rules in yours.
 reasoning: at most four sentences for the staff member who decides.
 Write dates the way the tools show them, for example Sep 21, 2026.
 Today is ${longDate(Date.now())}.`;

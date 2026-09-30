@@ -151,3 +151,30 @@ test('asking the customer needs a question', async () => {
   assert.match(result.error, /draftQuestion/);
   assert.equal(tablesDB.rows('approvals').length, 0);
 });
+
+test('a hand-off waits until every photo is inspected', async () => {
+  const { tablesDB, toolbox } = setup();
+  const handOff = () =>
+    toolbox.call(
+      'request_approval',
+      JSON.stringify({ recommendation: 'refund', findings: [], concerns: [], reasoning: 'x', draftQuestion: null }),
+    );
+  const early = await handOff();
+  assert.match(early.error, /inspect_photo with source "request"/);
+  assert.equal(tablesDB.rows('approvals').length, 0);
+  assert.equal(tablesDB.rows('run_steps').length, 0);
+  await toolbox.call('inspect_photo', JSON.stringify({ source: 'request' }));
+  assert.equal((await handOff()).ok, true);
+});
+
+test('an answer run also inspects the photo in the latest answer', async () => {
+  const { ctx, tablesDB, request } = setup();
+  const replies = [{ $id: 'rep1', message: 'Here is a closer photo.', photoId: 'photo2' }];
+  const toolbox = createToolbox(ctx, new Run(ctx, request), request, { job: 'reply', replies });
+  const args = JSON.stringify({ recommendation: 'refund', findings: [], concerns: [], reasoning: 'x', draftQuestion: null });
+  await toolbox.call('inspect_photo', JSON.stringify({ source: 'request' }));
+  assert.match((await toolbox.call('request_approval', args)).error, /"latest_reply"/);
+  await toolbox.call('inspect_photo', JSON.stringify({ source: 'latest_reply' }));
+  assert.equal((await toolbox.call('request_approval', args)).ok, true);
+  assert.equal(tablesDB.rows('approvals').length, 1);
+});
