@@ -58,9 +58,14 @@ export function ago(value: string | number | Date, now = Date.now()) {
   return `${days} ${days === 1 ? 'day' : 'days'} ago`;
 }
 
-/** Whole calendar days between a date and now. */
+const startOfDay = (value: string | number | Date) => {
+  const date = new Date(value);
+  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+};
+
+/** Calendar days between a date and now, the way the agent counts "days since delivery". */
 export const daysSince = (value: string | number | Date, now = Date.now()) =>
-  Math.floor((now - toMs(value)) / DAY);
+  Math.round((startOfDay(now) - startOfDay(value)) / DAY);
 
 /** "Delivered today", "Delivered yesterday", "Delivered 5 days ago". */
 export function deliveredAgo(value: string, now = Date.now()) {
