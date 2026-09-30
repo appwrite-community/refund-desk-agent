@@ -231,6 +231,8 @@ export const BUCKET = {
   antivirus: true,
 };
 
+export const AGENT_FUNCTION_ID = 'refund-agent';
+
 const AGENT_EVENTS = [
   `tablesdb.${DATABASE.id}.tables.refund_requests.rows.*.create`,
   `tablesdb.${DATABASE.id}.tables.approvals.rows.*.update`,
@@ -264,7 +266,7 @@ export const FUNCTIONS: FunctionConfig[] = [
     variables: [],
   },
   {
-    id: 'refund-agent',
+    id: AGENT_FUNCTION_ID,
     name: 'Refund agent',
     // Nobody can call the agent directly. Events and its own delayed executions start it.
     execute: [],

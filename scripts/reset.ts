@@ -1,9 +1,9 @@
 // Deletes the refund requests made while trying the demo, with their timeline,
-// approvals, answers, refunds, and photos, so every flow can run again. Seeded
-// people, orders, and resolved requests stay.
+// approvals, answers, refunds, photos, and queued return checks, so every flow
+// can run again. Seeded people, orders, and resolved requests stay.
 import { Query, type Models } from 'node-appwrite';
-import { describeError, storage, tablesDB } from './lib/client.ts';
-import { BUCKET, DATABASE } from './schema.ts';
+import { describeError, functions, storage, tablesDB } from './lib/client.ts';
+import { AGENT_FUNCTION_ID, BUCKET, DATABASE } from './schema.ts';
 import { HISTORY } from './seed-data.ts';
 
 const databaseId = DATABASE.id;
@@ -51,7 +51,18 @@ try {
   const demoFiles = (await listAllFiles()).filter((file) => !seeded.has(file.$id));
   for (const file of demoFiles) await storage.deleteFile({ bucketId: BUCKET.bucketId, fileId: file.$id });
 
-  console.log(`Deleted ${demoRequests.length} demo requests and ${demoFiles.length} photos.`);
+  // Return checks the agent queued as delayed executions. Their requests are gone.
+  const { executions } = await functions.listExecutions({
+    functionId: AGENT_FUNCTION_ID,
+    queries: [Query.equal('status', ['scheduled']), Query.limit(PAGE)],
+  });
+  for (const execution of executions) {
+    await functions.deleteExecution({ functionId: AGENT_FUNCTION_ID, executionId: execution.$id });
+  }
+
+  console.log(
+    `Deleted ${demoRequests.length} demo requests, ${demoFiles.length} photos, and ${executions.length} queued return checks.`,
+  );
 } catch (err) {
   console.error(`Reset failed: ${describeError(err)}`);
   process.exitCode = 1;
