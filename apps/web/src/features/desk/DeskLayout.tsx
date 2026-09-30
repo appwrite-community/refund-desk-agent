@@ -39,16 +39,16 @@ export function DeskLayout({ viewer, children }: { viewer: Viewer; children: Rea
           <p className="px-2 pb-1.5 text-xs font-medium text-subtle">Queues</p>
           <ul className="space-y-px">
             {QUEUES.slice(0, -1).map((queue) => (
-              <QueueLink key={queue.slug} queue={queue} requests={requests.data} />
+              <QueueLink key={queue.slug} queue={queue} requests={requests.data} failed={requests.isError} />
             ))}
           </ul>
           <div className="mx-2 my-2.5 h-px bg-border" />
           <ul>
-            <QueueLink queue={QUEUES.at(-1)!} requests={requests.data} />
+            <QueueLink queue={QUEUES.at(-1)!} requests={requests.data} failed={requests.isError} />
           </ul>
         </nav>
         <div className="space-y-2 p-2">
-          <AgentStatus requests={requests.data} />
+          <AgentStatus requests={requests.data} failed={requests.isError} />
           <UserMenu viewer={viewer} />
         </div>
       </aside>
@@ -59,7 +59,7 @@ export function DeskLayout({ viewer, children }: { viewer: Viewer; children: Rea
   );
 }
 
-function QueueLink({ queue, requests }: { queue: Queue; requests: RefundRequest[] | undefined }) {
+function QueueLink({ queue, requests, failed }: { queue: Queue; requests: RefundRequest[] | undefined; failed: boolean }) {
   const count = requests?.filter((request) => inQueue(queue, request)).length;
   const urgent = queue.slug === 'needs-approval' && Boolean(count);
   const working = queue.slug === 'agent-working' && Boolean(count);
@@ -76,7 +76,7 @@ function QueueLink({ queue, requests }: { queue: Queue; requests: RefundRequest[
           {working && <span className="absolute -top-0.5 -right-0.5 size-1.5 animate-agent-pulse rounded-full bg-iris" aria-hidden />}
         </span>
         <span className="flex-1 truncate font-medium">{queue.label}</span>
-        {count === undefined ? (
+        {failed ? null : count === undefined ? (
           <Skeleton className="h-3.5 w-4" />
         ) : (
           <span

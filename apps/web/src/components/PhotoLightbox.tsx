@@ -1,8 +1,8 @@
-import { Expand, ImageOff } from 'lucide-react';
+import { Expand, ImageOff, X } from 'lucide-react';
 import { useState } from 'react';
 import { photoUrl } from '@/lib/photos';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from './ui/dialog';
 
 type PhotoLightboxProps = {
   fileId: string;
@@ -41,11 +41,15 @@ export function PhotoLightbox({ fileId, token, label, caption, className }: Phot
         </span>
         <span className="sr-only">Open {label}</span>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl overflow-hidden p-0">
+      <DialogContent className="max-w-4xl overflow-hidden p-0" showClose={false}>
         <img src={src} alt={label} className="max-h-[78dvh] w-full bg-black object-contain" />
-        <div className="flex items-center justify-between gap-4 border-t border-border px-5 py-3.5 pr-14">
-          <DialogTitle className="text-sm">{label}</DialogTitle>
+        <div className="flex items-center gap-4 border-t border-border px-5 py-3">
+          <DialogTitle className="min-w-0 flex-1 truncate text-sm">{label}</DialogTitle>
           {caption && <DialogDescription className="truncate text-xs">{caption}</DialogDescription>}
+          <DialogClose className="-mr-1.5 rounded-sm p-1 text-subtle transition-colors hover:bg-hover hover:text-foreground">
+            <X className="size-4" aria-hidden />
+            <span className="sr-only">Close</span>
+          </DialogClose>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,10 +1,11 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { AppwriteException } from 'appwrite';
-import { ArrowLeft, ArrowRight, CircleAlert, CircleCheck, PackageSearch, RotateCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CircleAlert, CircleCheck, FileCheck, PackageSearch, RotateCw } from 'lucide-react';
 import { useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { AgentAvatar } from '@/components/Avatars';
 import { ProductImage } from '@/components/ProductImage';
+import { StatusBadge } from '@/components/StatusBadge';
 import { EmptyState, ErrorState } from '@/components/States';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -16,7 +17,7 @@ import { deliveredAgo, money, shortDate } from '@/lib/format';
 import { IntakeError, submitRequest, uploadPhoto } from '@/lib/intake';
 import { customerRequestsQuery, orderQuery } from '@/lib/queries';
 import { REASON_ORDER, REASONS } from '@/lib/status';
-import { parseItems, requestNumber, type Order, type OrderItem, type Reason } from '@/lib/types';
+import { parseItems, requestNumber, type Order, type OrderItem, type Reason, type RefundRequest } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { PhotoDropzone } from './PhotoDropzone';
 
@@ -52,15 +53,15 @@ export function RefundForm({ orderId, sku, customerId }: { orderId: string; sku:
           {item.name} from order <span className="font-mono text-13 text-foreground">{order.data.number}</span>
         </p>
       </div>
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <Form order={order.data} item={item} existing={existing ? { requestId: existing.$id, number: requestNumber(existing) } : null} />
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+        {existing ? <AlreadyAsked request={existing} /> : <Form order={order.data} item={item} />}
         <Summary order={order.data} item={item} />
       </div>
     </>
   );
 }
 
-function Form({ order, item, existing }: { order: Order; item: OrderItem; existing: { requestId: string; number: string } | null }) {
+function Form({ order, item }: { order: Order; item: OrderItem }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [reason, setReason] = useState<Reason | null>(null);
@@ -84,7 +85,7 @@ function Form({ order, item, existing }: { order: Order; item: OrderItem; existi
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setShowErrors(true);
-    if (!valid || !reason || existing) return;
+    if (!valid || !reason) return;
     setPending(true);
     setFailure(null);
     try {
@@ -114,7 +115,8 @@ function Form({ order, item, existing }: { order: Order; item: OrderItem; existi
     }
   }
 
-  const alreadyAsked = existing ?? (failure?.kind === 'exists' && failure.requestId ? { requestId: failure.requestId, number: failure.number ? `#${failure.number}` : '' } : null);
+  // Another tab or device submitted the same item first: intake answers 409 with that request.
+  const alreadyAsked = failure?.kind === 'exists' && failure.requestId ? { requestId: failure.requestId, number: failure.number ? `#${failure.number}` : '' } : null;
 
   return (
     <form onSubmit={onSubmit} noValidate className="overflow-hidden rounded-lg border border-border bg-surface">
@@ -133,7 +135,7 @@ function Form({ order, item, existing }: { order: Order; item: OrderItem; existi
         </div>
       )}
 
-      <fieldset className="border-b border-border px-6 py-6" disabled={pending || Boolean(existing)}>
+      <fieldset className="border-b border-border px-6 py-6" disabled={pending || Boolean(alreadyAsked)}>
         <legend className="sr-only">What went wrong?</legend>
         <p className="mb-3 text-13 font-medium" aria-hidden>
           What went wrong?
@@ -189,7 +191,7 @@ function Form({ order, item, existing }: { order: Order; item: OrderItem; existi
             value={details}
             onChange={(event) => setDetails(event.target.value)}
             placeholder="Tell us what you noticed. For example: the spout was bent when I opened the box."
-            disabled={pending || Boolean(existing)}
+            disabled={pending || Boolean(alreadyAsked)}
             aria-invalid={showErrors && errors.details ? true : undefined}
             aria-describedby={showErrors && errors.details ? 'details-error' : undefined}
           />
@@ -205,7 +207,7 @@ function Form({ order, item, existing }: { order: Order; item: OrderItem; existi
             file={photo}
             onChange={setPhoto}
             progress={progress}
-            disabled={pending || Boolean(existing)}
+            disabled={pending || Boolean(alreadyAsked)}
             invalid={showErrors && Boolean(errors.photo)}
             describedBy={showErrors && errors.photo ? 'photo-error' : 'photo-label'}
           />
@@ -225,7 +227,7 @@ function Form({ order, item, existing }: { order: Order; item: OrderItem; existi
       )}
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-border bg-background/40 px-6 py-4">
-        <Button type="submit" pending={pending} disabled={Boolean(existing)}>
+        <Button type="submit" pending={pending} disabled={Boolean(alreadyAsked)}>
           Submit request
         </Button>
         <p className="text-xs text-muted">
@@ -233,6 +235,26 @@ function Form({ order, item, existing }: { order: Order; item: OrderItem; existi
         </p>
       </div>
     </form>
+  );
+}
+
+function AlreadyAsked({ request }: { request: RefundRequest }) {
+  return (
+    <section className="rounded-lg border border-border bg-surface p-8 text-center">
+      <span className="mx-auto mb-4 flex size-10 items-center justify-center rounded-md border border-border-strong bg-raised text-muted">
+        <FileCheck className="size-5" strokeWidth={1.75} aria-hidden />
+      </span>
+      <h2 className="text-base font-semibold tracking-[-0.01em]">You already asked for a refund for this item</h2>
+      <p className="mx-auto mt-1.5 flex max-w-sm flex-wrap items-center justify-center gap-2 text-sm text-muted">
+        Request {requestNumber(request)} <StatusBadge status={request.status} audience="customer" size="sm" />
+      </p>
+      <Button asChild variant="secondary" size="sm" className="mt-6">
+        <Link to="/requests/$requestId" params={{ requestId: request.$id }}>
+          View request {requestNumber(request)}
+          <ArrowRight aria-hidden />
+        </Link>
+      </Button>
+    </section>
   );
 }
 
@@ -342,7 +364,7 @@ function RefundFormSkeleton() {
       <Skeleton className="mb-6 h-4 w-16" />
       <Skeleton className="h-8 w-56" />
       <Skeleton className="mt-2.5 mb-8 h-4 w-72" />
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="rounded-lg border border-border bg-surface p-6">
           <Skeleton className="mb-3 h-4 w-32" />
           <div className="grid gap-2 sm:grid-cols-2">

@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { ArrowDownUp } from 'lucide-react';
+import { ArrowDownUp, RotateCw, TriangleAlert } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
-import { ErrorState, EmptyState } from '@/components/States';
+import { EmptyState } from '@/components/States';
+import { Button } from '@/components/ui/button';
 import { Kbd } from '@/components/ui/kbd';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -83,7 +84,19 @@ export function RequestList({ queue, sort, selectedId }: RequestListProps) {
 
       <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
         {requests.isError ? (
-          <ErrorState title="Could not load requests." onRetry={() => void requests.refetch()} className="m-3" />
+          <EmptyState
+            icon={TriangleAlert}
+            title="Could not load requests"
+            className="h-full"
+            action={
+              <Button size="sm" variant="secondary" onClick={() => void requests.refetch()}>
+                <RotateCw aria-hidden />
+                Try again
+              </Button>
+            }
+          >
+            Check your connection. The list updates live again once it loads.
+          </EmptyState>
         ) : requests.isPending ? (
           <ListSkeleton />
         ) : rows.length === 0 ? (

@@ -48,9 +48,9 @@ export function RequestPage({ requestId }: { requestId: string }) {
         </p>
       </header>
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-6">
-          <div className="overflow-x-auto rounded-lg border border-border bg-surface px-6 py-4 scrollbar-thin">
+          <div className="rounded-lg border border-border bg-surface px-5 py-4 sm:px-6">
             <ProgressTracker status={data.status} />
           </div>
           <StatusPanel request={data} steps={steps.data ?? []} />
@@ -164,7 +164,7 @@ function RequestSkeleton() {
       <Skeleton className="mb-6 h-4 w-20" />
       <Skeleton className="h-8 w-72" />
       <Skeleton className="mt-3 mb-8 h-4 w-60" />
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
           <Skeleton className="h-[54px] rounded-lg" />
           <Skeleton className="h-[104px] rounded-lg" />

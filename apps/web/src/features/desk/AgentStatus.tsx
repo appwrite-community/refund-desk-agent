@@ -9,7 +9,7 @@ import { requestNumber, type RefundRequest } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 /** "Working on #1043" while a run is active, otherwise when the agent last ran. */
-export function AgentStatus({ requests }: { requests: RefundRequest[] | undefined }) {
+export function AgentStatus({ requests, failed }: { requests: RefundRequest[] | undefined; failed: boolean }) {
   const now = useNow(15_000);
   const latest = useQuery(latestStepQuery);
   const active = (requests ?? []).filter((request) => request.status === 'working');
@@ -25,7 +25,9 @@ export function AgentStatus({ requests }: { requests: RefundRequest[] | undefine
             <span className={cn('size-1.5 rounded-full', working ? 'animate-agent-pulse bg-iris' : 'bg-subtle')} aria-hidden />
           </p>
           <div className="truncate text-xs text-muted" aria-live="polite">
-            {!requests || latest.isPending ? (
+            {failed || latest.isError ? (
+              'Status unavailable'
+            ) : !requests || latest.isPending ? (
               <Skeleton className="mt-1 h-3 w-24" />
             ) : working ? (
               <>

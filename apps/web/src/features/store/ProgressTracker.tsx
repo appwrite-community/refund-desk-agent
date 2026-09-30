@@ -30,6 +30,8 @@ export function ProgressTracker({ status }: { status: RequestStatus }) {
       {stages.map((label, index) => {
         const done = index < current;
         const active = index === current;
+        // Small screens label only the current stage, or the outcome once the request is done.
+        const labelled = active || (current === stages.length && index === stages.length - 1);
         return (
           <li key={label} className={cn('flex items-center', index < stages.length - 1 && 'flex-1')} aria-current={active ? 'step' : undefined}>
             <span className="flex items-center gap-2.5">
@@ -47,7 +49,7 @@ export function ProgressTracker({ status }: { status: RequestStatus }) {
                   <span className={cn('size-1.5 rounded-full', active ? (status === 'working' ? 'animate-agent-pulse bg-iris' : 'bg-foreground') : 'bg-border-strong')} />
                 )}
               </span>
-              <span className={cn('text-13 whitespace-nowrap', done || active ? 'font-medium text-foreground' : 'text-subtle')}>
+              <span className={cn('text-13 whitespace-nowrap', done || active ? 'font-medium text-foreground' : 'text-subtle', !labelled && 'sr-only sm:not-sr-only')}>
                 {label}
                 <span className="sr-only">{done ? ' (done)' : active ? ' (current)' : ''}</span>
               </span>

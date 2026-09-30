@@ -186,13 +186,13 @@ function StateCard({ icon: Icon, title, tone, children }: { icon: LucideIcon; ti
   );
 }
 
-/** Past recommendations and what staff decided. */
+/** Past recommendations and what staff decided, oldest first. */
 export function DecisionHistory({ approvals }: { approvals: Approval[] }) {
   if (approvals.length === 0) return null;
   return (
     <Panel title="Decisions">
       <ol className="divide-y divide-border">
-        {approvals.map((approval) => (
+        {approvals.toReversed().map((approval) => (
           <li key={approval.$id} className="px-5 py-3.5">
             <div className="flex flex-wrap items-center gap-2 text-13">
               <span className="text-muted">Agent recommended</span>

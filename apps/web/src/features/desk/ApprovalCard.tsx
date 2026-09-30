@@ -66,16 +66,20 @@ export function ApprovalCard({ approval, request, viewer }: ApprovalCardProps) {
       aria-label="Approval"
       className="rounded-lg border border-amber/25 bg-surface outline-offset-2 focus-visible:outline-2"
     >
-      <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border px-5 py-3.5">
-        <AgentAvatar size="sm" />
-        <p className="text-13 font-medium">Refund agent recommends</p>
-        <Chip tone={recommendationTone(approval.recommendation)} size="md">
-          {recommendationLabel(approval.recommendation, approval.amountCents)}
-        </Chip>
-        <p className="ml-auto flex items-center gap-1.5 text-xs text-muted tabular" aria-live="off">
-          <span className="size-1.5 rounded-full bg-amber" aria-hidden />
-          Waiting {wait(now - toMs(approval.$createdAt))}
-        </p>
+      <header className="flex items-start gap-3 border-b border-border px-5 py-3.5">
+        <AgentAvatar size="md" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-3">
+            <p className="flex-1 text-xs text-muted">Refund agent recommends</p>
+            <p className="flex items-center gap-1.5 text-xs text-muted tabular">
+              <span className="size-1.5 rounded-full bg-amber" aria-hidden />
+              Waiting {wait(now - toMs(approval.$createdAt))}
+            </p>
+          </div>
+          <Chip tone={recommendationTone(approval.recommendation)} className="mt-1.5">
+            {recommendationLabel(approval.recommendation, approval.amountCents)}
+          </Chip>
+        </div>
       </header>
 
       <div className="space-y-4 px-5 py-4">

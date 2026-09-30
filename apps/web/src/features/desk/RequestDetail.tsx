@@ -174,9 +174,13 @@ function Meta({ label, icon, children }: { label: string; icon: ReactNode; child
   );
 }
 
+/** A run that has not written anything for a while was most likely stopped (for example by the function timeout). */
+const isStalled = (request: RefundRequest, now: number) =>
+  request.status === 'working' && now - toMs(request.$updatedAt) > STALLED_AFTER;
+
 function Banners({ request }: { request: RefundRequest }) {
   const now = useNow(15_000);
-  if (request.status === 'working' && now - toMs(request.$updatedAt) > STALLED_AFTER) {
+  if (isStalled(request, now)) {
     return (
       <Banner>
         The agent stopped before finishing. Check the refund-agent executions in the Appwrite Console.
@@ -208,6 +212,7 @@ type CaseCardsProps = {
 
 /** The main card changes with the status; the decisions so far stay listed under it. */
 function CaseCards({ request, steps, approvals, viewer, loading }: CaseCardsProps) {
+  const now = useNow(15_000);
   const runs = useMemo(() => groupRuns(steps ?? [], request.status), [steps, request.status]);
   if (loading || !approvals || !steps) return <Skeleton className="h-52 rounded-lg" />;
 
@@ -227,7 +232,7 @@ function CaseCards({ request, steps, approvals, viewer, loading }: CaseCardsProp
   if (inFlight) main = <DecidedCard approval={inFlight} viewerId={viewer.user.$id} />;
   else if (request.status === 'needs_approval') {
     main = pending ? <ApprovalCard key={pending.$id} approval={pending} request={request} viewer={viewer} /> : <Skeleton className="h-52 rounded-lg" />;
-  } else if (request.status === 'working') main = <AgentWorkingCard run={lastRun} />;
+  } else if (request.status === 'working') main = isStalled(request, now) ? null : <AgentWorkingCard run={lastRun} />;
   else if (request.status === 'submitted') main = <SubmittedCard />;
   else if (request.status === 'needs_customer') main = <QuestionCard request={request} approval={latest} />;
   else if (request.status === 'awaiting_return') main = <ReturnCard request={request} />;
