@@ -41,8 +41,8 @@ export function PhotoLightbox({ fileId, token, label, caption, className }: Phot
         </span>
         <span className="sr-only">Open {label}</span>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl overflow-hidden p-0" showClose={false}>
-        <img src={src} alt={label} className="max-h-[78dvh] w-full bg-black object-contain" />
+      <DialogContent className="w-auto max-w-[min(56rem,calc(100%-2rem))] overflow-hidden p-0" showClose={false}>
+        <img src={src} alt={label} className="block max-h-[78dvh] w-auto max-w-full bg-black" />
         <div className="flex items-center gap-4 border-t border-border px-5 py-3">
           <DialogTitle className="min-w-0 flex-1 truncate text-sm">{label}</DialogTitle>
           {caption && <DialogDescription className="truncate text-xs">{caption}</DialogDescription>}
