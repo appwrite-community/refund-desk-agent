@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { AppwriteException } from 'appwrite';
-import { ArrowLeft, ArrowRight, CircleAlert, CircleCheck, FileCheck, PackageSearch, RotateCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BadgeDollarSign, CircleAlert, CircleCheck, FileCheck, PackageSearch, RotateCw, Users, type LucideIcon } from 'lucide-react';
 import { useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { AgentAvatar } from '@/components/Avatars';
 import { ProductImage } from '@/components/ProductImage';
@@ -285,8 +285,8 @@ function Summary({ order, item }: { order: Order; item: OrderItem }) {
         <p className="mb-3.5 text-xs font-medium tracking-wide text-subtle uppercase">What happens next</p>
         <ol className="space-y-3.5">
           <Step marker={<AgentAvatar size="xs" />}>Our refund agent reviews your request, usually in about a minute.</Step>
-          <Step marker={<Numbered>2</Numbered>}>Small, clear cases are refunded right away.</Step>
-          <Step marker={<Numbered>3</Numbered>}>Everything else goes to our support team, who reply within one business day.</Step>
+          <Step marker={<IconMarker icon={BadgeDollarSign} />}>Small, clear cases are refunded right away.</Step>
+          <Step marker={<IconMarker icon={Users} />}>Everything else goes to our support team, who reply within one business day.</Step>
         </ol>
       </div>
     </aside>
@@ -311,10 +311,10 @@ function Step({ marker, children }: { marker: ReactNode; children: ReactNode }) 
   );
 }
 
-function Numbered({ children }: { children: ReactNode }) {
+function IconMarker({ icon: Icon }: { icon: LucideIcon }) {
   return (
-    <span className="flex size-5 items-center justify-center rounded-full border border-border-strong bg-raised text-[10px] font-semibold text-muted">
-      {children}
+    <span className="flex size-5 items-center justify-center rounded-full border border-border-strong bg-raised text-muted">
+      <Icon className="size-3" strokeWidth={2} aria-hidden />
     </span>
   );
 }
