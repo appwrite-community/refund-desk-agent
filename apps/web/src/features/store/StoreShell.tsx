@@ -108,7 +108,10 @@ function MobileNav({ links }: { links: { to: string; label: string }[] }) {
       </DialogTrigger>
       <DialogContent className="top-2 max-w-none translate-y-0 p-2 data-[state=open]:animate-rise">
         <DialogTitle className="sr-only">Menu</DialogTitle>
-        <nav className="flex flex-col gap-1 pt-10" aria-label="Main">
+        <div className="flex h-10 items-center px-3">
+          <Logo surface="support" />
+        </div>
+        <nav className="mt-2 flex flex-col gap-1" aria-label="Main">
           {links.map((item) => (
             <Link key={item.to} to={item.to} className={`${navLink} px-3 py-2.5 text-sm`} onClick={() => setOpen(false)}>
               {item.label}
